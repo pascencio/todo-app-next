@@ -1,3 +1,4 @@
+"use client"
 import { TaskEntity } from "@/app/lib/app/task/task.entity";
 import { TaskOutput } from "@/app/lib/app/task/task.output";
 import { IDBPDatabase, openDB } from "idb";

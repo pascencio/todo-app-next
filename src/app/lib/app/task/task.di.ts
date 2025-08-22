@@ -1,3 +1,4 @@
+"use client"
 import { AddTaskUserCase, GetTasksUserCase } from "@/app/lib/app/task/task.usecase";
 import { DiContainer } from "@/app/lib/di/di";
 import { TaskOutput } from "./task.output";

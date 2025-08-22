@@ -1,3 +1,4 @@
+'use client'
 import { TaskEntity } from "@/app/lib/app/task/task.entity";
 
 export abstract class TaskOutput {

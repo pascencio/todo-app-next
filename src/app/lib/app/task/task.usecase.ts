@@ -1,3 +1,4 @@
+"use client"
 import { TaskOutput } from "@/app/lib/app/task/task.output";
 import { TaskEntity } from "@/app/lib/app/task/task.entity";
 
