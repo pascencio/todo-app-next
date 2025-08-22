@@ -14,7 +14,7 @@ export class TaskIndexedDB implements TaskOutput {
     private async initDB(): Promise<IDBPDatabase<TaskEntity>> {
         if (this.db) return this.db;
         
-        this.db = await openDB<TaskEntity>("task-db", 1, {
+        this.db = await openDB<TaskEntity>("task-db", 2, {
             upgrade(db) {
                 if (!db.objectStoreNames.contains("tasks")) {
                     db.createObjectStore("tasks", { keyPath: "id" });
