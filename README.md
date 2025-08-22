@@ -45,6 +45,25 @@ Una aplicación de gestión de tareas construida con Next.js, TypeScript y arqui
    http://localhost:3000
    ```
 
+## 🚀 Despliegue local (Puerto 8080)
+
+Para ejecutar la aplicación en el puerto 8080:
+
+1. **Construir la aplicación**
+   ```bash
+   npm run build
+   ```
+
+2. **Iniciar en puerto 8080**
+   ```bash
+   npm start -- -p 8080
+   ```
+
+3. **Abrir en el navegador**
+   ```
+   http://localhost:8080
+   ```
+
 ## 🎯 Cómo usar la aplicación
 
 ### Gestión de Tareas
