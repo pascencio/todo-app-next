@@ -15,15 +15,15 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react"
 
 function useTasksUseCase() {
-    return useMemo(() => DiContainer.getInstance().get(GetTasksUserCase), []);
+    return DiContainer.getInstance().get(GetTasksUserCase);
 }
 
 function useAddTaskUseCase() {
-    return useMemo(() => DiContainer.getInstance().get(AddTaskUserCase), []);
+    return DiContainer.getInstance().get(AddTaskUserCase);
 }
 
 export const columns: ColumnDef<TaskEntity>[] = [

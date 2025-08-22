@@ -14,10 +14,12 @@ const INTERNAL_ACCESS = Symbol('internal_access');
 
 export class DiContainer {
     private static instance: DiContainer;
-    private container: Map<string, unknown>;
+    private factories: Map<string, FactoryFunction<unknown>>;
+    private instances: Map<string, unknown>;
 
     private constructor() {
-        this.container = new Map();
+        this.factories = new Map();
+        this.instances = new Map();
     }
 
     register<T>(accessKey: typeof INTERNAL_ACCESS, component: AbstractComponent<T>, factory: FactoryFunction<T>): DiContainer {
@@ -25,17 +27,28 @@ export class DiContainer {
             throw new Error('register method can only be called from di.ts');
         }
         const className = component.name;
-        this.container.set(className, factory(this));
+        this.factories.set(className, factory as FactoryFunction<unknown>);
         return this;
     }
 
     public get<T>(component: AbstractComponent<T>): T {
         const className = component.name;
-        if (!this.container.has(className)) {
-            const availableComponents = Array.from(this.container.keys()).join(', ');
+        
+        // Si ya existe la instancia, devolverla (singleton)
+        if (this.instances.has(className)) {
+            return this.instances.get(className) as T;
+        }
+        
+        // Si no existe, crearla usando la factory
+        if (!this.factories.has(className)) {
+            const availableComponents = Array.from(this.factories.keys()).join(', ');
             throw new Error(`Component ${className} not found. Available components: ${availableComponents}`);
         }
-        return this.container.get(className) as T;
+        
+        const factory = this.factories.get(className)!;
+        const instance = factory(this);
+        this.instances.set(className, instance);
+        return instance as T;
     }
 
     public static getInstance(): DiContainer {
