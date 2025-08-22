@@ -21,6 +21,7 @@ export class TaskIndexedDB implements TaskOutput {
                 }
             }
         });
+        console.log("Database initialized");
         return this.db;
     }
 
