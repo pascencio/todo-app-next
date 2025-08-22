@@ -19,11 +19,11 @@ import { useEffect, useState } from "react";
 import { Plus } from "lucide-react"
 
 function useTasksUseCase() {
-    return DiContainer.getInstance().get(GetTasksUserCase);
+    return DiContainer.getInstance().get(GetTasksUserCase)
 }
 
 function useAddTaskUseCase() {
-    return DiContainer.getInstance().get(AddTaskUserCase);
+    return DiContainer.getInstance().get(AddTaskUserCase)
 }
 
 export const columns: ColumnDef<TaskEntity>[] = [
@@ -62,12 +62,17 @@ export default function Task() {
 
     useEffect(() => {
         const fetchTasks = async () => {
-            const tasks = await getTasksUseCase.execute();
-            setTasks(tasks);
+            try {
+                const tasks = await getTasksUseCase.execute();
+                setTasks(tasks);
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+                setTasks([]);
+            }
         };
 
         fetchTasks();
-    });
+    }, [getTasksUseCase]); 
 
     const handleAddTask = async () => {
         const task = await addTaskUseCase.execute({
