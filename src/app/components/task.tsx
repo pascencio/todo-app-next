@@ -1,6 +1,7 @@
 "use client";
 
 import { AddTaskUserCase, DeleteTaskUserCase, GetTasksUserCase, UpdateTaskUserCase, Task as TaskType } from "@/app/lib/app/task/task.usecase";
+import { TaskStatus } from "@/app/lib/app/task/task.entity";
 import { DiContainer } from "@/app/lib/di/di";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +38,8 @@ import { Minus, Pencil, Plus } from "lucide-react"
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 
 function useTasksUseCase() {
     return DiContainer.getInstance().get(GetTasksUserCase)
@@ -61,6 +64,7 @@ const FormSchema = z.object({
     description: z.string().min(1, {
         message: "Description is required.",
     }),
+    status: z.enum(TaskStatus).optional(),
 })
 
 
@@ -77,6 +81,7 @@ export default function Task() {
         defaultValues: {
             title: "",
             description: "",
+            status: undefined,
         },
     })
     const addTaskUseCase = useAddTaskUseCase();
@@ -103,8 +108,9 @@ export default function Task() {
     }
 
     const handleUpdateTask = async (id: string, data: z.infer<typeof FormSchema>) => {
-        await updateTaskUseCase.execute({ id, name: data.title, description: data.description });
-        setTasks(tasks.map((task) => task.id === id ? { ...task, name: data.title, description: data.description } : task));
+        const status = data.status || TaskStatus.PENDING;
+        await updateTaskUseCase.execute({ id, name: data.title, description: data.description, status });
+        setTasks(tasks.map((task) => task.id === id ? { ...task, name: data.title, description: data.description, status } : task));
     }
 
     const onOpenChange = (status: boolean) => {
@@ -138,6 +144,7 @@ export default function Task() {
         setEditTaskId(id);
         form.setValue("title", task.name);
         form.setValue("description", task?.description || "");
+        form.setValue("status", task.status);
         setDialogTitle("Editar Tarea");
         setDialogDescription("Edita la tarea seleccionada.");
         setIsEditOpen(true);
@@ -153,15 +160,12 @@ export default function Task() {
     async function onSubmit(data: z.infer<typeof FormSchema>) {
         try {
             if (isEditOpen) {
-                await handleUpdateTask(
-                    editTaskId, {
-                    title: data.title,
-                    description: data.description,
-                });
+                await handleUpdateTask(editTaskId, data);
             } else {
                 const task = await addTaskUseCase.execute({
                     name: data.title,
                     description: data.description,
+                    status: data.status, // Puede ser undefined, AddTaskUserCase manejará el fallback
                 });
                 setTasks([...tasks, task as TaskType]);
             }
@@ -180,6 +184,7 @@ export default function Task() {
     return (
         <div>
             <h1 className="text-2xl font-bold">Lista de Tareas</h1>
+            <Separator className="my-4" />
             <div className="flex justify-end mb-4">
                 <Dialog open={isOpen} onOpenChange={onOpenChange}>
                     <DialogTrigger asChild>
@@ -228,6 +233,39 @@ export default function Task() {
                                         </FormItem>
                                     )}
                                 />
+                                {
+                                    isEditOpen ? (
+                                        <FormField
+                                        control={form.control}
+                                        name="status"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Status</FormLabel>
+                                                <FormControl>
+                                                    <Select 
+                                                        value={field.value} 
+                                                        onValueChange={field.onChange}
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Selecciona un status" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {
+                                                                Object.values(TaskStatus).map((status) => (
+                                                                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                                                                ))
+                                                            }
+                                                        </SelectContent>
+                                                    </Select>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />   
+                                    ) : (
+                                        <></>
+                                    )
+                                }
                             </div>
                         </Form>
                         <DialogFooter>

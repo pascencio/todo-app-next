@@ -11,6 +11,7 @@ dayjs.locale('es');
 export interface AddTaskInput {
     name: string;
     description: string;
+    status?: TaskStatus;
 }
 
 export class AddTaskUserCase {
@@ -25,7 +26,7 @@ export class AddTaskUserCase {
             updatedAt: now,
             name: task.name,
             description: task.description,
-            status: TaskStatus.PENDING
+            status: task.status || TaskStatus.PENDING
         });
 
         // Convertir a la interfaz Task con fechas formateadas
@@ -88,6 +89,7 @@ export interface UpdateTaskInput {
     id: string;
     name: string;
     description: string;
+    status: TaskStatus;
 }
 
 export class UpdateTaskUserCase {
@@ -100,7 +102,7 @@ export class UpdateTaskUserCase {
             updatedAt: new Date(),
             name: input.name,
             description: input.description,
-            status: TaskStatus.PENDING
+            status: input.status
         });
     }
 }
