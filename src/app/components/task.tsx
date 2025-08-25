@@ -20,8 +20,23 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
+import {
+    Form,
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form"
+import { z } from "zod"
+import { Input } from "@/components/ui/input"
+
 import { useEffect, useState } from "react";
 import { Minus, Pencil, Plus } from "lucide-react"
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Textarea } from "@/components/ui/textarea";
 
 function useTasksUseCase() {
     return DiContainer.getInstance().get(GetTasksUserCase)
@@ -35,10 +50,27 @@ function useDeleteTaskUseCase() {
     return DiContainer.getInstance().get(DeleteTaskUserCase)
 }
 
+const FormSchema = z.object({
+    title: z.string().min(10, {
+        message: "Title must be at least 10 characters.",
+    }),
+    description: z.string().min(10, {
+        message: "Description must be at least 10 characters.",
+    }),
+})
+
 
 export default function Task() {
     const [tasks, setTasks] = useState<TaskType[]>([]);
     const [isOpen, setIsOpen] = useState(false);
+
+    const form = useForm<z.infer<typeof FormSchema>>({
+        resolver: zodResolver(FormSchema),
+        defaultValues: {
+            title: "",
+            description: "",
+        },
+    })
     const addTaskUseCase = useAddTaskUseCase();
     const getTasksUseCase = useTasksUseCase();
     const deleteTaskUseCase = useDeleteTaskUseCase();
@@ -56,18 +88,25 @@ export default function Task() {
         fetchTasks();
     }, [getTasksUseCase]);
 
-    const handleAddTask = async () => {
-        const task = await addTaskUseCase.execute({
-            name: "Task 1",
-            description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.",
-        });
-        setTasks([...tasks, task as TaskType]);
-        setIsOpen(false);
-    }
+
 
     const handleDeleteTask = async (id: string) => {
         await deleteTaskUseCase.execute({ id });
         setTasks(tasks.filter((task) => task.id !== id));
+    }
+
+    async function onSubmit(data: z.infer<typeof FormSchema>) {
+        try {
+            const task = await addTaskUseCase.execute({
+                name: data.title,
+                description: data.description,
+            });
+            setTasks([...tasks, task as TaskType]);
+            form.reset();
+            setIsOpen(false);
+        } catch (error) {
+            console.error('Error adding task:', error);
+        }
     }
 
     return (
@@ -93,8 +132,39 @@ export default function Task() {
                                 Agrega una nueva tarea a tu lista de tareas.
                             </DialogDescription>
                         </DialogHeader>
+                        <Form {...form}>
+                            <div className="space-y-4">
+                                <FormField
+                                    control={form.control}
+                                    name="title"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Título</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Título de la tarea" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="description"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Descripción</FormLabel>
+                                            <FormControl>
+                                                <Textarea placeholder="Descripción de la tarea" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </Form>
                         <DialogFooter>
-                            <Button onClick={handleAddTask}>Agregar</Button>
+                            <Button onClick={form.handleSubmit(onSubmit)}>Agregar</Button>
+                            <Button variant="outline" onClick={() => setIsOpen(false)}>Cancelar</Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
