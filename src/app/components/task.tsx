@@ -101,6 +101,8 @@ export default function Task() {
                             </CardHeader>
                             <CardContent>
                                 <p>{task.description}</p>
+                                <p>{task.createdAt}</p>
+                                <p>{task.updatedAt}</p>
                             </CardContent>
                             <CardFooter>
                                 <p>{task.status}</p>

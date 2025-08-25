@@ -1,3 +1,11 @@
+import dayjs from 'dayjs';
+import duration from 'dayjs/plugin/duration';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+// Extender Day.js con plugins
+dayjs.extend(duration);
+dayjs.extend(relativeTime);
+
 export class Stopwatch {
     private startTime: number;
     private accumulatedTime: number; // Tiempo acumulado hasta ahora
@@ -80,12 +88,36 @@ export class Stopwatch {
     }
 
     getClockTime(): string {
-        const hours = Math.floor(this.getElapsedTimeInHours() % 24);
-        const hoursString = hours.toString().padStart(2, '0');
-        const minutes = Math.floor(this.getElapsedTimeInMinutes() % 60);
-        const minutesString = minutes.toString().padStart(2, '0');
-        const seconds = Math.floor(this.getElapsedTimeInSeconds() % 60);
-        const secondsString = seconds.toString().padStart(2, '0');
-        return `${hoursString}:${minutesString}:${secondsString}`;
+        const elapsed = this.getElapsedTime();
+        const duration = dayjs.duration(elapsed);
+        return duration.format('HH:mm:ss');
+    }
+
+    getFormattedDuration(): string {
+        const elapsed = this.getElapsedTime();
+        const duration = dayjs.duration(elapsed);
+        
+        if (duration.asHours() >= 1) {
+            return duration.format('H[h] m[m] s[s]');
+        } else if (duration.asMinutes() >= 1) {
+            return duration.format('m[m] s[s]');
+        } else {
+            return duration.format('s[s]');
+        }
+    }
+
+    getHumanReadableTime(): string {
+        const elapsed = this.getElapsedTime();
+        return dayjs.duration(elapsed).humanize();
+    }
+
+    getStartedAt(): string | null {
+        if (this.startTime === 0) return null;
+        return dayjs(this.startTime).format('YYYY-MM-DD HH:mm:ss');
+    }
+
+    getStartedAtRelative(): string | null {
+        if (this.startTime === 0) return null;
+        return dayjs(this.startTime).fromNow();
     }
 }

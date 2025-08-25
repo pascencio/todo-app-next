@@ -1,6 +1,12 @@
 "use client"
 import { TaskOutput } from "@/app/lib/app/task/task.output";
 import { TaskEntity, TaskStatus } from "@/app/lib/app/task/task.entity";
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import 'dayjs/locale/es';
+
+dayjs.extend(relativeTime);
+dayjs.locale('es');
 
 export interface AddTaskInput {
     name: string;
@@ -46,8 +52,8 @@ export class GetTasksUserCase {
                 id: task.id,
                 name: task.name,
                 description: task.description,
-                createdAt: task.createdAt.toISOString(),
-                updatedAt: task.updatedAt.toISOString(),
+                createdAt: dayjs(task.createdAt).format('DD/MM/YYYY HH:mm'),
+                updatedAt: dayjs(task.updatedAt).fromNow(),
                 status: task.status
             })) as Task[]
         };
