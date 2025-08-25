@@ -1,7 +1,6 @@
 "use client";
 
-import { TaskEntity, TaskStatus } from "@/app/lib/app/task/task.entity";
-import { AddTaskUserCase, DeleteTaskUserCase, GetTasksUserCase } from "@/app/lib/app/task/task.usecase";
+import { AddTaskUserCase, DeleteTaskUserCase, GetTasksUserCase, Task as TaskType } from "@/app/lib/app/task/task.usecase";
 import { DiContainer } from "@/app/lib/di/di";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,7 +37,7 @@ function useDeleteTaskUseCase() {
 
 
 export default function Task() {
-    const [tasks, setTasks] = useState<TaskEntity[]>([]);
+    const [tasks, setTasks] = useState<TaskType[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const addTaskUseCase = useAddTaskUseCase();
     const getTasksUseCase = useTasksUseCase();
@@ -46,8 +45,8 @@ export default function Task() {
     useEffect(() => {
         const fetchTasks = async () => {
             try {
-                const tasks = await getTasksUseCase.execute();
-                setTasks(tasks);
+                const { tasks } = await getTasksUseCase.execute();
+                setTasks(tasks as TaskType[]);
             } catch (error) {
                 console.error('Error fetching tasks:', error);
                 setTasks([]);
@@ -59,19 +58,15 @@ export default function Task() {
 
     const handleAddTask = async () => {
         const task = await addTaskUseCase.execute({
-            id: crypto.randomUUID(),
-            createdAt: new Date(),
-            updatedAt: new Date(),
             name: "Task 1",
             description: "Description 1",
-            status: TaskStatus.PENDING
         });
-        setTasks([...tasks, task]);
+        setTasks([...tasks, task as TaskType]);
         setIsOpen(false);
     }
 
     const handleDeleteTask = async (id: string) => {
-        await deleteTaskUseCase.execute(id);
+        await deleteTaskUseCase.execute({ id });
         setTasks(tasks.filter((task) => task.id !== id));
     }
 
