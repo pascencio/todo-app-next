@@ -17,7 +17,7 @@ export class Stopwatch {
         this.isRunning = false;
     }
 
-    setAccumulatedTime(accumulatedTime: number) {
+    setInitialTime(accumulatedTime: number) {
         // Asegurar que el stopwatch esté parado antes de establecer el tiempo acumulado
         this.isRunning = false;
         this.startTime = 0;
