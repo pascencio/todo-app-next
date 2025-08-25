@@ -1,8 +1,8 @@
 'use client'
 export enum TaskStatus {
-    PENDING = "Pending",
-    IN_PROGRESS = "In Progress",
-    COMPLETED = "Completed",
+    PENDING = "Pendiente",
+    IN_PROGRESS = "En progreso",
+    COMPLETED = "Completado",
 }
 
 export interface TaskEntity {
