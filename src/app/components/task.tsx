@@ -1,7 +1,7 @@
 "use client";
 
 import { TaskEntity, TaskStatus } from "@/app/lib/app/task/task.entity";
-import { AddTaskUserCase, GetTasksUserCase } from "@/app/lib/app/task/task.usecase";
+import { AddTaskUserCase, DeleteTaskUserCase, GetTasksUserCase } from "@/app/lib/app/task/task.usecase";
 import { DiContainer } from "@/app/lib/di/di";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,12 +32,17 @@ function useAddTaskUseCase() {
     return DiContainer.getInstance().get(AddTaskUserCase)
 }
 
+function useDeleteTaskUseCase() {
+    return DiContainer.getInstance().get(DeleteTaskUserCase)
+}
+
+
 export default function Task() {
     const [tasks, setTasks] = useState<TaskEntity[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const addTaskUseCase = useAddTaskUseCase();
     const getTasksUseCase = useTasksUseCase();
-
+    const deleteTaskUseCase = useDeleteTaskUseCase();
     useEffect(() => {
         const fetchTasks = async () => {
             try {
@@ -64,6 +69,12 @@ export default function Task() {
         setTasks([...tasks, task]);
         setIsOpen(false);
     }
+
+    const handleDeleteTask = async (id: string) => {
+        await deleteTaskUseCase.execute(id);
+        setTasks(tasks.filter((task) => task.id !== id));
+    }
+
     return (
         <div>
             <h1 className="text-2xl font-bold">Task</h1>
@@ -102,8 +113,8 @@ export default function Task() {
                             <CardAction className="w-full">
                                 <div className="flex gap-2 justify-end">
                                     <Button>Edit</Button>
-                                    <Button>Delete</Button>
-                                    </div>
+                                    <Button onClick={() => handleDeleteTask(task.id)}>Delete</Button>
+                                </div>
                             </CardAction>
                         </Card>
                     ))

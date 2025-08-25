@@ -19,3 +19,12 @@ export class GetTasksUserCase {
         return this.taskOutput.getTasks();
     }
 }
+
+export class DeleteTaskUserCase {
+    constructor(private taskOutput: TaskOutput) {
+    }
+
+    async execute(id: string): Promise<void> {
+        return this.taskOutput.deleteTask(id);
+    }
+}
