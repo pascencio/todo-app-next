@@ -368,8 +368,8 @@ export default function Task() {
                                             }} variant={taskStopWatch.id === task.id ? "outline" : "default"}>{taskStopWatch.id === task.id ? <Pause /> : <Play />}</Button>
                                         )
                                     }
-                                    <Button variant="outline" onClick={() => openEditDialog(task.id)}><Pencil />Editar</Button>
-                                    <Button variant="destructive" onClick={() => handleDeleteTask(task.id)}><Minus />Eliminar</Button>
+                                    <Button disabled={isPlaying && taskStopWatch.id === task.id} variant="outline" onClick={() => openEditDialog(task.id)}><Pencil />Editar</Button>
+                                    <Button disabled={isPlaying && taskStopWatch.id === task.id} variant="destructive" onClick={() => handleDeleteTask(task.id)}><Minus />Eliminar</Button>
                                 </div>
                             </CardAction>
                         </Card>
