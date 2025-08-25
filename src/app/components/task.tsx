@@ -33,12 +33,16 @@ import { z } from "zod"
 import { Input } from "@/components/ui/input"
 
 import { useEffect, useState } from "react";
-import { Minus, Pencil, Plus } from "lucide-react"
+import { Minus, Pause, Pencil, Play, Plus } from "lucide-react"
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Stopwatch } from "@/app/lib/util/stopwatch";
+import { sendNotification } from "../lib/util/notification";
+
+const stopwatch = new Stopwatch();
 
 function useTasksUseCase() {
     return DiContainer.getInstance().get(GetTasksUserCase)
@@ -71,9 +75,12 @@ export default function Task() {
     const [tasks, setTasks] = useState<TaskType[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [elapsedTime, setElapsedTime] = useState<number>(0);
     const [editTaskId, setEditTaskId] = useState<string>("");
     const [dialogTitle, setDialogTitle] = useState<string>("");
     const [dialogDescription, setDialogDescription] = useState<string>("");
+    const [timeInterval, setTimeInterval] = useState<NodeJS.Timeout | null>(null);
 
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
@@ -87,6 +94,36 @@ export default function Task() {
     const getTasksUseCase = useTasksUseCase();
     const deleteTaskUseCase = useDeleteTaskUseCase();
     const updateTaskUseCase = useUpdateTaskUseCase();
+
+    const start = async () => {
+        sendNotification("Tiempo iniciado", "El tiempo ha sido iniciado");
+        stopwatch.start();
+        if (!timeInterval) {
+            const interval = setInterval(() => {
+                setElapsedTime(stopwatch.getElapsedTimeInMilliseconds());
+            }, 1000);
+            setTimeInterval(interval);
+        }
+    }
+
+    const pause = async (id: string) => {
+        sendNotification("Tiempo pausado", "El tiempo ha sido pausado");
+        stopwatch.pause();
+
+        // Limpiar el intervalo cuando pausamos
+        if (timeInterval) {
+            clearInterval(timeInterval);
+            setTimeInterval(null);
+        }
+        const task = tasks.find((task) => task.id === id);
+        if (!task) {
+            console.error("Task not found");
+            return;
+        }
+        const updatedTask = await updateTaskUseCase.execute({ id, elapsedTime: stopwatch.getElapsedTimeInMilliseconds(), name: task.name, description: task.description, status: task.status });
+        setTasks(tasks.map((task) => task.id === id ? updatedTask as unknown as TaskType : task));
+    }
+
     useEffect(() => {
         const fetchTasks = async () => {
             try {
@@ -108,7 +145,7 @@ export default function Task() {
 
     const handleUpdateTask = async (id: string, data: z.infer<typeof FormSchema>) => {
         const status = data.status || TaskStatus.PENDING;
-        await updateTaskUseCase.execute({ id, name: data.title, description: data.description, status });
+        await updateTaskUseCase.execute({ id, name: data.title, description: data.description, status, elapsedTime });
         setTasks(tasks.map((task) => task.id === id ? { ...task, name: data.title, description: data.description, status } : task));
     }
 
@@ -235,32 +272,32 @@ export default function Task() {
                                 {
                                     isEditOpen ? (
                                         <FormField
-                                        control={form.control}
-                                        name="status"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Status</FormLabel>
-                                                <FormControl>
-                                                    <Select 
-                                                        value={field.value} 
-                                                        onValueChange={field.onChange}
-                                                    >
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Selecciona un status" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {
-                                                                Object.values(TaskStatus).map((status) => (
-                                                                    <SelectItem key={status} value={status}>{status}</SelectItem>
-                                                                ))
-                                                            }
-                                                        </SelectContent>
-                                                    </Select>
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />   
+                                            control={form.control}
+                                            name="status"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Status</FormLabel>
+                                                    <FormControl>
+                                                        <Select
+                                                            value={field.value}
+                                                            onValueChange={field.onChange}
+                                                        >
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Selecciona un status" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {
+                                                                    Object.values(TaskStatus).map((status) => (
+                                                                        <SelectItem key={status} value={status}>{status}</SelectItem>
+                                                                    ))
+                                                                }
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
                                     ) : (
                                         <></>
                                     )
@@ -283,14 +320,19 @@ export default function Task() {
                             </CardHeader>
                             <CardContent>
                                 <p className="pb-2">{task.description}</p>
-                                <p className="text-sm"><span className="font-bold font-size-xs">Created:</span> {task.createdAt}</p>
-                                <p className="text-sm"><span className="font-bold font-size-xs">Updated:</span> {task.updatedAt}</p>
+                                <p className="text-sm"><span className="font-bold font-size-xs">Creación:</span> {task.createdAt}</p>
+                                <p className="text-sm"><span className="font-bold font-size-xs">Actualización:</span> {task.updatedAt}</p>
+                                <p className="text-sm"><span className="font-bold font-size-xs">Tiempo transcurrido:</span> {task.elapsedTime || '00:00:00'}</p>
                             </CardContent>
                             <CardFooter>
                                 <p className="text-sm"><span className="font-bold">Status:</span> {task.status}</p>
                             </CardFooter>
                             <CardAction className="w-full">
                                 <div className="flex gap-2 justify-end">
+                                    <Button onClick={async () => {
+                                        await (isPlaying ? pause(task.id) : start())
+                                        setIsPlaying(!isPlaying);
+                                    }} variant={isPlaying ? "outline" : "default"}>{isPlaying ? <Pause /> : <Play />}</Button>
                                     <Button variant="outline" onClick={() => openEditDialog(task.id)}><Pencil />Editar</Button>
                                     <Button variant="destructive" onClick={() => handleDeleteTask(task.id)}><Minus />Eliminar</Button>
                                 </div>

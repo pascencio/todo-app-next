@@ -78,7 +78,8 @@ function createContainer(): void {
                             description: "",
                             status: TaskStatus.PENDING,
                             createdAt: new Date(),
-                            updatedAt: new Date()
+                            updatedAt: new Date(),
+                            elapsedTime: 0
                         }
                     }
                 } satisfies TaskOutput;
