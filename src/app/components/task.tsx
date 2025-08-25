@@ -268,7 +268,7 @@ export default function Task() {
                             </div>
                         </Form>
                         <DialogFooter>
-                            <Button onClick={form.handleSubmit(onSubmit)}>{isEditOpen ? "Editar" : "Agregar"}</Button>
+                            <Button onClick={form.handleSubmit(onSubmit)}>{isEditOpen ? "Guardar" : "Agregar"}</Button>
                             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
                         </DialogFooter>
                     </DialogContent>
