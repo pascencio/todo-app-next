@@ -18,14 +18,25 @@ export class AddTaskUserCase {
     }
 
     async execute(task: AddTaskInput): Promise<Task> {
-        return this.taskOutput.addTask({
+        const now = new Date();
+        const taskEntity = await this.taskOutput.addTask({
             id: crypto.randomUUID(),
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: now,
+            updatedAt: now,
             name: task.name,
             description: task.description,
             status: TaskStatus.PENDING
-        }) as unknown as Task;
+        });
+        
+        // Convertir a la interfaz Task con fechas formateadas
+        return {
+            id: taskEntity.id,
+            name: taskEntity.name,
+            description: taskEntity.description,
+            createdAt: dayjs(taskEntity.createdAt).format('DD/MM/YYYY HH:mm'),
+            updatedAt: dayjs(taskEntity.updatedAt).fromNow(),
+            status: taskEntity.status
+        };
     }
 }
 
