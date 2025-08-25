@@ -19,10 +19,3 @@ export class GetTasksUserCase {
         return this.taskOutput.getTasks();
     }
 }
-
-export function registerTaskUserCases(taskOutput: TaskOutput) {
-    return {
-        addTask: new AddTaskUserCase(taskOutput),
-        getTasks: new GetTasksUserCase(taskOutput),
-    };
-}
