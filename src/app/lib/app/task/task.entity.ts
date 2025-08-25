@@ -2,7 +2,8 @@
 export enum TaskStatus {
     PENDING = "Pendiente",
     IN_PROGRESS = "En progreso",
-    COMPLETED = "Completado",
+    COMPLETED = "Completada",
+    PAUSED = "Pausada",
 }
 
 export interface TaskEntity {

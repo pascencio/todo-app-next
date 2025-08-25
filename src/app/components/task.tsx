@@ -37,7 +37,6 @@ import { Minus, Pause, Pencil, Play, Plus } from "lucide-react"
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Stopwatch } from "@/app/lib/util/stopwatch";
 import { sendNotification } from "../lib/util/notification";
@@ -65,7 +64,6 @@ const FormSchema = z.object({
     description: z.string().min(1, {
         message: "Description is required.",
     }),
-    status: z.enum(TaskStatus).optional(),
 })
 
 interface TaskStopWatch {
@@ -94,7 +92,6 @@ export default function Task() {
         defaultValues: {
             title: "",
             description: "",
-            status: undefined,
         },
     })
     const addTaskUseCase = useAddTaskUseCase();
@@ -109,18 +106,27 @@ export default function Task() {
             return;
         }
         console.log("task on start", task);
-        
+
         // Si ya hay una tarea ejecutándose, pausarla primero
         if (taskStopWatch.id && taskStopWatch.id !== id) {
             await pause(taskStopWatch.id);
         }
-        
+
         // Usar el tiempo acumulado de la tarea o 0 si no existe
         const initialTime = task.elapsedTimeInMilliseconds || 0;
         console.log("Setting initial time to:", initialTime);
         stopwatch.setInitialTime(initialTime);
         sendNotification("Tiempo iniciado", `Tarea ${task.name} ha sido iniciada!`);
         stopwatch.start();
+        const updatedTask = await updateTaskUseCase.execute({
+            id,
+            elapsedTime: stopwatch.getElapsedTimeInMilliseconds(),
+            name: task.name,
+            description: task.description,
+            status: TaskStatus.IN_PROGRESS
+        });
+        console.log("updatedTask on start", updatedTask);
+        setTasks(tasks.map((task) => task.id === id ? updatedTask as unknown as TaskType : task));
         setTaskStopWatch({
             id,
             clockTime: stopwatch.getClockTime(),
@@ -156,13 +162,13 @@ export default function Task() {
             clearInterval(timeInterval);
             setTimeInterval(null);
         }
-        
-        const updatedTask = await updateTaskUseCase.execute({ 
-            id, 
-            elapsedTime: stopwatch.getElapsedTimeInMilliseconds(), 
-            name: task.name, 
-            description: task.description, 
-            status: task.status 
+
+        const updatedTask = await updateTaskUseCase.execute({
+            id,
+            elapsedTime: stopwatch.getElapsedTimeInMilliseconds(),
+            name: task.name,
+            description: task.description,
+            status: TaskStatus.PAUSED
         });
         console.log("updatedTask on pause", updatedTask);
         setTasks(tasks.map((task) => task.id === id ? updatedTask as unknown as TaskType : task));
@@ -188,9 +194,19 @@ export default function Task() {
     }
 
     const handleUpdateTask = async (id: string, data: z.infer<typeof FormSchema>) => {
-        const status = data.status || TaskStatus.PENDING;
-        await updateTaskUseCase.execute({ id, name: data.title, description: data.description, status, elapsedTime });
-        setTasks(tasks.map((task) => task.id === id ? { ...task, name: data.title, description: data.description, status } : task));
+        const task = tasks.find((task) => task.id === id);
+        if (!task) {
+            console.error("Task not found");
+            return;
+        }
+        await updateTaskUseCase.execute({ 
+            id, 
+            name: data.title, 
+            description: data.description, 
+            elapsedTime: task.elapsedTimeInMilliseconds || 0, 
+            status: task.status as TaskStatus 
+        });
+        setTasks(tasks.map((task) => task.id === id ? { ...task, name: data.title, description: data.description } : task));
     }
 
     const onOpenChange = (status: boolean) => {
@@ -224,7 +240,6 @@ export default function Task() {
         setEditTaskId(id);
         form.setValue("title", task.name);
         form.setValue("description", task?.description || "");
-        form.setValue("status", task.status);
         setDialogTitle("Editar Tarea");
         setDialogDescription("Edita la tarea seleccionada.");
         setIsEditOpen(true);
@@ -245,7 +260,6 @@ export default function Task() {
                 const task = await addTaskUseCase.execute({
                     name: data.title,
                     description: data.description,
-                    status: data.status, // Puede ser undefined, AddTaskUserCase manejará el fallback
                 });
                 setTasks([...tasks, task as TaskType]);
             }
@@ -313,39 +327,6 @@ export default function Task() {
                                         </FormItem>
                                     )}
                                 />
-                                {
-                                    isEditOpen ? (
-                                        <FormField
-                                            control={form.control}
-                                            name="status"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Status</FormLabel>
-                                                    <FormControl>
-                                                        <Select
-                                                            value={field.value}
-                                                            onValueChange={field.onChange}
-                                                        >
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder="Selecciona un status" />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {
-                                                                    Object.values(TaskStatus).map((status) => (
-                                                                        <SelectItem key={status} value={status}>{status}</SelectItem>
-                                                                    ))
-                                                                }
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                    ) : (
-                                        <></>
-                                    )
-                                }
                             </div>
                         </Form>
                         <DialogFooter>
@@ -369,17 +350,21 @@ export default function Task() {
                                 <p className="text-sm"><span className="font-bold font-size-xs">Tiempo transcurrido:</span> {taskStopWatch.id === task.id ? taskStopWatch.clockTime : task.elapsedTime || '00:00:00'}</p>
                             </CardContent>
                             <CardFooter>
-                                <p className="text-sm"><span className="font-bold">Status:</span> {task.status}</p>
+                                <p className="text-sm"><span className="font-bold">Status:</span> {task.status === TaskStatus.IN_PROGRESS ? "En progreso" : task.status === TaskStatus.PAUSED ? "Pausada" : task.status === TaskStatus.COMPLETED ? "Completada" : "Pendiente"}</p>
                             </CardFooter>
                             <CardAction className="w-full">
                                 <div className="flex gap-2 justify-end">
-                                    <Button disabled={isPlaying && taskStopWatch.id !== task.id} onClick={async () => {
-                                        if (taskStopWatch.id === task.id) {
-                                            await pause(task.id);
-                                        } else {
-                                            await start(task.id);
-                                        }
-                                    }} variant={taskStopWatch.id === task.id ? "outline" : "default"}>{taskStopWatch.id === task.id ? <Pause /> : <Play />}</Button>
+                                    {
+                                        task.status !== TaskStatus.COMPLETED && (
+                                            <Button disabled={isPlaying && taskStopWatch.id !== task.id} onClick={async () => {
+                                                if (taskStopWatch.id === task.id) {
+                                                    await pause(task.id);
+                                                } else {
+                                                    await start(task.id);
+                                                }
+                                            }} variant={taskStopWatch.id === task.id ? "outline" : "default"}>{taskStopWatch.id === task.id ? <Pause /> : <Play />}</Button>
+                                        )
+                                    }
                                     <Button variant="outline" onClick={() => openEditDialog(task.id)}><Pencil />Editar</Button>
                                     <Button variant="destructive" onClick={() => handleDeleteTask(task.id)}><Minus />Eliminar</Button>
                                 </div>
