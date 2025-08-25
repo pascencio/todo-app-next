@@ -51,11 +51,11 @@ function useDeleteTaskUseCase() {
 }
 
 const FormSchema = z.object({
-    title: z.string().min(10, {
-        message: "Title must be at least 10 characters.",
+    title: z.string().min(1, {
+        message: "Title is required.",
     }),
-    description: z.string().min(10, {
-        message: "Description must be at least 10 characters.",
+    description: z.string().min(1, {
+        message: "Description is required.",
     }),
 })
 
