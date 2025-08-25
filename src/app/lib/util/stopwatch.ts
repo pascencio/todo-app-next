@@ -17,6 +17,13 @@ export class Stopwatch {
         this.isRunning = false;
     }
 
+    setAccumulatedTime(accumulatedTime: number) {
+        // Asegurar que el stopwatch esté parado antes de establecer el tiempo acumulado
+        this.isRunning = false;
+        this.startTime = 0;
+        this.accumulatedTime = accumulatedTime;
+    }
+
     start() {
         if (!this.isRunning) {
             this.startTime = Date.now();

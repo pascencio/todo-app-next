@@ -40,6 +40,7 @@ export class AddTaskUserCase {
             createdAt: dayjs(taskEntity.createdAt).format('DD/MM/YYYY HH:mm'),
             updatedAt: dayjs(taskEntity.updatedAt).fromNow(),
             elapsedTime: taskEntity.elapsedTime ? dayjs.duration(taskEntity.elapsedTime).format('HH:mm:ss') : '00:00:00',
+            elapsedTimeInMilliseconds: taskEntity.elapsedTime ? taskEntity.elapsedTime : 0,
             status: taskEntity.status
         };
     }
@@ -52,6 +53,7 @@ export interface Task {
     createdAt?: string;
     updatedAt?: string;
     elapsedTime?: string;
+    elapsedTimeInMilliseconds?: number;
     status: TaskStatus;
 }
 
@@ -72,6 +74,7 @@ export class GetTasksUserCase {
                 createdAt: dayjs(task.createdAt).format('DD/MM/YYYY HH:mm'),
                 updatedAt: dayjs(task.updatedAt).fromNow(),
                 elapsedTime: task.elapsedTime ? dayjs.duration(task.elapsedTime).format('HH:mm:ss') : '00:00:00',
+                elapsedTimeInMilliseconds: task.elapsedTime ? task.elapsedTime : 0,
                 status: task.status
             })) as Task[]
         };
@@ -119,6 +122,7 @@ export class UpdateTaskUserCase {
             createdAt: dayjs(taskEntity.createdAt).format('DD/MM/YYYY HH:mm'),
             updatedAt: dayjs(taskEntity.updatedAt).fromNow(),
             elapsedTime: taskEntity.elapsedTime ? dayjs.duration(taskEntity.elapsedTime).format('HH:mm:ss') : '00:00:00',
+            elapsedTimeInMilliseconds: taskEntity.elapsedTime ? taskEntity.elapsedTime : 0,
             status: taskEntity.status
         };
     }

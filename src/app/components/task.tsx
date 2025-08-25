@@ -42,8 +42,6 @@ import { Separator } from "@/components/ui/separator";
 import { Stopwatch } from "@/app/lib/util/stopwatch";
 import { sendNotification } from "../lib/util/notification";
 
-const stopwatch = new Stopwatch();
-
 function useTasksUseCase() {
     return DiContainer.getInstance().get(GetTasksUserCase)
 }
@@ -75,12 +73,14 @@ export default function Task() {
     const [tasks, setTasks] = useState<TaskType[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
-    const [isPlaying, setIsPlaying] = useState(false);
+    const [playingTaskId, setPlayingTaskId] = useState<string | null>(null);
     const [elapsedTime, setElapsedTime] = useState<number>(0);
     const [editTaskId, setEditTaskId] = useState<string>("");
     const [dialogTitle, setDialogTitle] = useState<string>("");
     const [dialogDescription, setDialogDescription] = useState<string>("");
     const [timeInterval, setTimeInterval] = useState<NodeJS.Timeout | null>(null);
+    const [clockTime, setClockTime] = useState<string>("00:00:00");
+    const [stopwatch] = useState<Stopwatch>(() => new Stopwatch());
 
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
@@ -95,32 +95,60 @@ export default function Task() {
     const deleteTaskUseCase = useDeleteTaskUseCase();
     const updateTaskUseCase = useUpdateTaskUseCase();
 
-    const start = async () => {
-        sendNotification("Tiempo iniciado", "El tiempo ha sido iniciado");
+    const start = async (id: string) => {
+        const task = tasks.find((task) => task.id === id);
+        if (!task) {
+            console.error("Task not found");
+            return;
+        }
+        console.log("task on start", task);
+        
+        // Si ya hay una tarea ejecutándose, pausarla primero
+        if (playingTaskId && playingTaskId !== id) {
+            await pause(playingTaskId);
+        }
+        
+        // Usar el tiempo acumulado de la tarea o 0 si no existe
+        const initialTime = task.elapsedTimeInMilliseconds || 0;
+        console.log("Setting initial time to:", initialTime);
+        stopwatch.setAccumulatedTime(initialTime);
+        sendNotification("Tiempo iniciado", `Tarea ${task.name} ha sido iniciada!`);
         stopwatch.start();
+        setPlayingTaskId(id);
+        
         if (!timeInterval) {
             const interval = setInterval(() => {
                 setElapsedTime(stopwatch.getElapsedTimeInMilliseconds());
+                setClockTime(stopwatch.getClockTime());
             }, 1000);
             setTimeInterval(interval);
         }
     }
 
     const pause = async (id: string) => {
-        sendNotification("Tiempo pausado", "El tiempo ha sido pausado");
+        const task = tasks.find((task) => task.id === id);
+        if (!task) {
+            console.error("Task not found");
+            return;
+        }
+        sendNotification("Tiempo pausado", `Tarea ${task.name} ha sido pausada!`);
         stopwatch.pause();
+        setPlayingTaskId(null);
 
         // Limpiar el intervalo cuando pausamos
         if (timeInterval) {
             clearInterval(timeInterval);
             setTimeInterval(null);
         }
-        const task = tasks.find((task) => task.id === id);
-        if (!task) {
-            console.error("Task not found");
-            return;
-        }
-        const updatedTask = await updateTaskUseCase.execute({ id, elapsedTime: stopwatch.getElapsedTimeInMilliseconds(), name: task.name, description: task.description, status: task.status });
+        
+        const updatedTask = await updateTaskUseCase.execute({ 
+            id, 
+            elapsedTime: stopwatch.getElapsedTimeInMilliseconds(), 
+            name: task.name, 
+            description: task.description, 
+            status: task.status 
+        });
+        console.log("updatedTask on pause", updatedTask);
         setTasks(tasks.map((task) => task.id === id ? updatedTask as unknown as TaskType : task));
     }
 
@@ -322,7 +350,7 @@ export default function Task() {
                                 <p className="pb-2">{task.description}</p>
                                 <p className="text-sm"><span className="font-bold font-size-xs">Creación:</span> {task.createdAt}</p>
                                 <p className="text-sm"><span className="font-bold font-size-xs">Actualización:</span> {task.updatedAt}</p>
-                                <p className="text-sm"><span className="font-bold font-size-xs">Tiempo transcurrido:</span> {task.elapsedTime || '00:00:00'}</p>
+                                <p className="text-sm"><span className="font-bold font-size-xs">Tiempo transcurrido:</span> {playingTaskId === task.id ? clockTime : task.elapsedTime || '00:00:00'}</p>
                             </CardContent>
                             <CardFooter>
                                 <p className="text-sm"><span className="font-bold">Status:</span> {task.status}</p>
@@ -330,9 +358,12 @@ export default function Task() {
                             <CardAction className="w-full">
                                 <div className="flex gap-2 justify-end">
                                     <Button onClick={async () => {
-                                        await (isPlaying ? pause(task.id) : start())
-                                        setIsPlaying(!isPlaying);
-                                    }} variant={isPlaying ? "outline" : "default"}>{isPlaying ? <Pause /> : <Play />}</Button>
+                                        if (playingTaskId === task.id) {
+                                            await pause(task.id);
+                                        } else {
+                                            await start(task.id);
+                                        }
+                                    }} variant={playingTaskId === task.id ? "outline" : "default"}>{playingTaskId === task.id ? <Pause /> : <Play />}</Button>
                                     <Button variant="outline" onClick={() => openEditDialog(task.id)}><Pencil />Editar</Button>
                                     <Button variant="destructive" onClick={() => handleDeleteTask(task.id)}><Minus />Eliminar</Button>
                                 </div>
