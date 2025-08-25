@@ -3,7 +3,7 @@ import { AddTaskUserCase, DeleteTaskUserCase, GetTasksUserCase, UpdateTaskUserCa
 import { getAddTaskUseCaseFactory, getDeleteTaskUseCaseFactory, getTasksUseCasesFactory, getUpdateTaskUseCaseFactory } from "../app/task/task.di";
 import { TaskIndexedDB } from "../app/task/task.indexeddb";
 import { TaskOutput } from "../app/task/task.output";
-import { TaskEntity } from "../app/task/task.entity";
+import { TaskEntity, TaskStatus } from "../app/task/task.entity";
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 type AbstractComponent<T = object> = Function & { prototype: T };
@@ -71,7 +71,16 @@ function createContainer(): void {
                     getTasks: async (): Promise<TaskEntity[]> => [],
                     getTaskById: async (): Promise<TaskEntity | null> => null,
                     deleteTask: async (): Promise<void> => {},
-                    updateTask: async (): Promise<void> => {}
+                    updateTask: async (): Promise<TaskEntity> => {  
+                        return {
+                            id: "",
+                            name: "",
+                            description: "",
+                            status: TaskStatus.PENDING,
+                            createdAt: new Date(),
+                            updatedAt: new Date()
+                        }
+                    }
                 } satisfies TaskOutput;
             }
             return new TaskIndexedDB();
