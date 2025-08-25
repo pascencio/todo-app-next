@@ -69,13 +69,13 @@ const FormSchema = z.object({
 interface TaskStopWatch {
     id: string;
     clockTime: string;
+    elapsedTime: number;
 }
 
 export default function Task() {
     const [tasks, setTasks] = useState<TaskType[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
-    const [elapsedTime, setElapsedTime] = useState<number>(0);
     const [editTaskId, setEditTaskId] = useState<string>("");
     const [dialogTitle, setDialogTitle] = useState<string>("");
     const [dialogDescription, setDialogDescription] = useState<string>("");
@@ -85,6 +85,7 @@ export default function Task() {
     const [taskStopWatch, setTaskStopWatch] = useState<TaskStopWatch>({
         id: "",
         clockTime: "00:00:00",
+        elapsedTime: 0,
     });
 
     const form = useForm<z.infer<typeof FormSchema>>({
@@ -130,14 +131,15 @@ export default function Task() {
         setTaskStopWatch({
             id,
             clockTime: stopwatch.getClockTime(),
+            elapsedTime: stopwatch.getElapsedTimeInMilliseconds(),
         });
         setIsPlaying(true);
         if (!timeInterval) {
             const interval = setInterval(() => {
-                setElapsedTime(stopwatch.getElapsedTimeInMilliseconds());
                 setTaskStopWatch({
                     id,
                     clockTime: stopwatch.getClockTime(),
+                    elapsedTime: stopwatch.getElapsedTimeInMilliseconds(),
                 });
             }, 1000);
             setTimeInterval(interval);
@@ -155,6 +157,7 @@ export default function Task() {
         setTaskStopWatch({
             id: "",
             clockTime: "00:00:00",
+            elapsedTime: stopwatch.getElapsedTimeInMilliseconds(),
         });
         setIsPlaying(false);
         // Limpiar el intervalo cuando pausamos
