@@ -1,6 +1,6 @@
 "use client";
 
-import { AddTaskUserCase, DeleteTaskUserCase, GetTasksUserCase, Task as TaskType } from "@/app/lib/app/task/task.usecase";
+import { AddTaskUserCase, DeleteTaskUserCase, GetTasksUserCase, UpdateTaskUserCase, Task as TaskType } from "@/app/lib/app/task/task.usecase";
 import { DiContainer } from "@/app/lib/di/di";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,6 +50,10 @@ function useDeleteTaskUseCase() {
     return DiContainer.getInstance().get(DeleteTaskUserCase)
 }
 
+function useUpdateTaskUseCase() {
+    return DiContainer.getInstance().get(UpdateTaskUserCase)
+}
+
 const FormSchema = z.object({
     title: z.string().min(1, {
         message: "Title is required.",
@@ -63,6 +67,10 @@ const FormSchema = z.object({
 export default function Task() {
     const [tasks, setTasks] = useState<TaskType[]>([]);
     const [isOpen, setIsOpen] = useState(false);
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [editTaskId, setEditTaskId] = useState<string>("");
+    const [dialogTitle, setDialogTitle] = useState<string>("");
+    const [dialogDescription, setDialogDescription] = useState<string>("");
 
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
@@ -74,6 +82,7 @@ export default function Task() {
     const addTaskUseCase = useAddTaskUseCase();
     const getTasksUseCase = useTasksUseCase();
     const deleteTaskUseCase = useDeleteTaskUseCase();
+    const updateTaskUseCase = useUpdateTaskUseCase();
     useEffect(() => {
         const fetchTasks = async () => {
             try {
@@ -88,24 +97,83 @@ export default function Task() {
         fetchTasks();
     }, [getTasksUseCase]);
 
-
-
     const handleDeleteTask = async (id: string) => {
         await deleteTaskUseCase.execute({ id });
         setTasks(tasks.filter((task) => task.id !== id));
     }
 
+    const handleUpdateTask = async (id: string, data: z.infer<typeof FormSchema>) => {
+        await updateTaskUseCase.execute({ id, name: data.title, description: data.description });
+        setTasks(tasks.map((task) => task.id === id ? { ...task, name: data.title, description: data.description } : task));
+    }
+
+    const onOpenChange = (status: boolean) => {
+        if (status) {
+            if (!isEditOpen) {
+                setIsEditOpen(false);
+                setEditTaskId("");
+                setDialogTitle("Nueva Tarea");
+                setDialogDescription("Agrega una nueva tarea a tu lista de tareas.");
+                form.reset();
+            } else {
+                setIsEditOpen(true);
+                setDialogTitle("Editar Tarea");
+                setDialogDescription("Edita la tarea seleccionada.");
+            }
+        } else {
+            setIsOpen(false);
+            setIsEditOpen(false);
+        }
+    }
+
+    const openEditDialog = (id: string) => {
+        console.log("openEditDialog", id);
+        const task = tasks.find((task) => task.id === id);
+        if (!task) {
+            console.error("Task not found");
+            // TODO: Show error message
+            return;
+        }
+        console.log("task", task);
+        setEditTaskId(id);
+        form.setValue("title", task.name);
+        form.setValue("description", task?.description || "");
+        setDialogTitle("Editar Tarea");
+        setDialogDescription("Edita la tarea seleccionada.");
+        setIsEditOpen(true);
+        setIsOpen(true);
+    }
+
+    const openAddDialog = () => {
+        setIsOpen(true);
+        setDialogTitle("Nueva Tarea");
+        setDialogDescription("Agrega una nueva tarea a tu lista de tareas.");
+    }
+
     async function onSubmit(data: z.infer<typeof FormSchema>) {
         try {
-            const task = await addTaskUseCase.execute({
-                name: data.title,
-                description: data.description,
-            });
-            setTasks([...tasks, task as TaskType]);
-            form.reset();
+            if (isEditOpen) {
+                await handleUpdateTask(
+                    editTaskId, {
+                    title: data.title,
+                    description: data.description,
+                });
+            } else {
+                const task = await addTaskUseCase.execute({
+                    name: data.title,
+                    description: data.description,
+                });
+                setTasks([...tasks, task as TaskType]);
+            }
             setIsOpen(false);
+            setIsEditOpen(false);
+            setEditTaskId("");
+            setDialogTitle("");
+            setDialogDescription("");
+            form.reset();
         } catch (error) {
             console.error('Error adding task:', error);
+            // TODO: Show error message
         }
     }
 
@@ -113,23 +181,23 @@ export default function Task() {
         <div>
             <h1 className="text-2xl font-bold">Lista de Tareas</h1>
             <div className="flex justify-end mb-4">
-                <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                <Dialog open={isOpen} onOpenChange={onOpenChange}>
                     <DialogTrigger asChild>
                         <div>
-                            <Button className="hidden md:flex items-center gap-2">
+                            <Button className="hidden md:flex items-center gap-2" onClick={openAddDialog}>
                                 <Plus className="h-4 w-4" />
                                 Nueva
                             </Button>
-                            <Button className="fixed bottom-7 right-2 z-50 md:hidden rounded-full p-3 shadow-lg">
+                            <Button className="fixed bottom-7 right-2 z-50 md:hidden rounded-full p-3 shadow-lg" onClick={openAddDialog}>
                                 <Plus className="h-5 w-5" />
                             </Button>
                         </div>
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>Nueva Tarea</DialogTitle>
+                            <DialogTitle>{dialogTitle}</DialogTitle>
                             <DialogDescription>
-                                Agrega una nueva tarea a tu lista de tareas.
+                                {dialogDescription}
                             </DialogDescription>
                         </DialogHeader>
                         <Form {...form}>
@@ -163,8 +231,8 @@ export default function Task() {
                             </div>
                         </Form>
                         <DialogFooter>
-                            <Button onClick={form.handleSubmit(onSubmit)}>Agregar</Button>
-                            <Button variant="outline" onClick={() => setIsOpen(false)}>Cancelar</Button>
+                            <Button onClick={form.handleSubmit(onSubmit)}>{isEditOpen ? "Editar" : "Agregar"}</Button>
+                            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
@@ -186,7 +254,7 @@ export default function Task() {
                             </CardFooter>
                             <CardAction className="w-full">
                                 <div className="flex gap-2 justify-end">
-                                    <Button variant="outline"><Pencil />Editar</Button>
+                                    <Button variant="outline" onClick={() => openEditDialog(task.id)}><Pencil />Editar</Button>
                                     <Button variant="destructive" onClick={() => handleDeleteTask(task.id)}><Minus />Eliminar</Button>
                                 </div>
                             </CardAction>

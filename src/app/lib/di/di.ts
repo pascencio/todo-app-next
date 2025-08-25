@@ -1,6 +1,6 @@
 "use client"
-import { AddTaskUserCase, DeleteTaskUserCase, GetTasksUserCase } from "../app/task/task.usecase";
-import { getAddTaskUseCaseFactory, getDeleteTaskUseCaseFactory, getTasksUseCasesFactory } from "../app/task/task.di";
+import { AddTaskUserCase, DeleteTaskUserCase, GetTasksUserCase, UpdateTaskUserCase } from "../app/task/task.usecase";
+import { getAddTaskUseCaseFactory, getDeleteTaskUseCaseFactory, getTasksUseCasesFactory, getUpdateTaskUseCaseFactory } from "../app/task/task.di";
 import { TaskIndexedDB } from "../app/task/task.indexeddb";
 import { TaskOutput } from "../app/task/task.output";
 import { TaskEntity } from "../app/task/task.entity";
@@ -78,7 +78,8 @@ function createContainer(): void {
         })
         .register(INTERNAL_ACCESS, GetTasksUserCase, getTasksUseCasesFactory)
         .register(INTERNAL_ACCESS, AddTaskUserCase, getAddTaskUseCaseFactory)
-        .register(INTERNAL_ACCESS, DeleteTaskUserCase, getDeleteTaskUseCaseFactory);
+        .register(INTERNAL_ACCESS, DeleteTaskUserCase, getDeleteTaskUseCaseFactory)
+        .register(INTERNAL_ACCESS, UpdateTaskUserCase, getUpdateTaskUseCaseFactory);
 }
 
 // Se ejecuta una vez al importar el módulo

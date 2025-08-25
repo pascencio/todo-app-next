@@ -13,7 +13,7 @@ export class TaskIndexedDB implements TaskOutput {
 
     private async initDB(): Promise<IDBPDatabase<TaskEntity>> {
         if (this.db) return this.db;
-        
+
         this.db = await openDB<TaskEntity>("task-db", 2, {
             upgrade(db) {
                 if (!db.objectStoreNames.contains("tasks")) {
@@ -52,11 +52,26 @@ export class TaskIndexedDB implements TaskOutput {
         await db.delete("tasks", id);
     }
 
-    async updateTask(id: string, task: TaskEntity): Promise<void> {
+    async updateTask(id: string, task: TaskEntity): Promise<TaskEntity> {
         const db = await this.getDB();
-        await db.put("tasks", {
+        
+        // Obtener la tarea existente
+        const existingTask = await db.get("tasks", id);
+        if (!existingTask) {
+            throw new Error(`Task with id ${id} not found`);
+        }
+        
+        // Crear la tarea actualizada manteniendo los campos originales
+        const updatedTask: TaskEntity = {
+            ...existingTask,
             ...task,
-            id
-        });
+            id: id, // Asegurar que el ID no cambie
+            updatedAt: new Date() // Actualizar la fecha de modificación
+        };
+        
+        // Actualizar en la base de datos
+        await db.put("tasks", updatedTask);
+        
+        return updatedTask;
     }
 }

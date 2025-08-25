@@ -27,7 +27,7 @@ export class AddTaskUserCase {
             description: task.description,
             status: TaskStatus.PENDING
         });
-        
+
         // Convertir a la interfaz Task con fechas formateadas
         return {
             id: taskEntity.id,
@@ -44,8 +44,8 @@ export interface Task {
     id: string;
     name: string;
     description: string;
-    createdAt: string;
-    updatedAt: string;
+    createdAt?: string;
+    updatedAt?: string;
     status: TaskStatus;
 }
 
@@ -81,5 +81,26 @@ export class DeleteTaskUserCase {
 
     async execute(input: DeleteTaskInput): Promise<void> {
         return this.taskOutput.deleteTask(input.id);
+    }
+}
+
+export interface UpdateTaskInput {
+    id: string;
+    name: string;
+    description: string;
+}
+
+export class UpdateTaskUserCase {
+    constructor(private taskOutput: TaskOutput) {
+    }
+
+    async execute(input: UpdateTaskInput): Promise<TaskEntity> {
+        return this.taskOutput.updateTask(input.id, {
+            id: input.id,
+            updatedAt: new Date(),
+            name: input.name,
+            description: input.description,
+            status: TaskStatus.PENDING
+        });
     }
 }

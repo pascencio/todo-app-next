@@ -1,5 +1,5 @@
 "use client"
-import { AddTaskUserCase, DeleteTaskUserCase, GetTasksUserCase } from "@/app/lib/app/task/task.usecase";
+import { AddTaskUserCase, DeleteTaskUserCase, GetTasksUserCase, UpdateTaskUserCase } from "@/app/lib/app/task/task.usecase";
 import { DiContainer } from "@/app/lib/di/di";
 import { TaskOutput } from "./task.output";
 
@@ -16,4 +16,9 @@ export function getAddTaskUseCaseFactory(container: DiContainer) {
 export function getDeleteTaskUseCaseFactory(container: DiContainer) {
     const taskOutput = container.get(TaskOutput);
     return new DeleteTaskUserCase(taskOutput);
+}
+
+export function getUpdateTaskUseCaseFactory(container: DiContainer) {
+    const taskOutput = container.get(TaskOutput);
+    return new UpdateTaskUserCase(taskOutput);
 }
