@@ -68,20 +68,26 @@ const FormSchema = z.object({
     status: z.enum(TaskStatus).optional(),
 })
 
+interface TaskStopWatch {
+    id: string;
+    clockTime: string;
+}
 
 export default function Task() {
     const [tasks, setTasks] = useState<TaskType[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
-    const [playingTaskId, setPlayingTaskId] = useState<string | null>(null);
     const [elapsedTime, setElapsedTime] = useState<number>(0);
     const [editTaskId, setEditTaskId] = useState<string>("");
     const [dialogTitle, setDialogTitle] = useState<string>("");
     const [dialogDescription, setDialogDescription] = useState<string>("");
     const [timeInterval, setTimeInterval] = useState<NodeJS.Timeout | null>(null);
-    const [clockTime, setClockTime] = useState<string>("00:00:00");
     const [isPlaying, setIsPlaying] = useState<boolean>(false);
     const [stopwatch] = useState<Stopwatch>(() => new Stopwatch());
+    const [taskStopWatch, setTaskStopWatch] = useState<TaskStopWatch>({
+        id: "",
+        clockTime: "00:00:00",
+    });
 
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
@@ -105,8 +111,8 @@ export default function Task() {
         console.log("task on start", task);
         
         // Si ya hay una tarea ejecutándose, pausarla primero
-        if (playingTaskId && playingTaskId !== id) {
-            await pause(playingTaskId);
+        if (taskStopWatch.id && taskStopWatch.id !== id) {
+            await pause(taskStopWatch.id);
         }
         
         // Usar el tiempo acumulado de la tarea o 0 si no existe
@@ -115,12 +121,18 @@ export default function Task() {
         stopwatch.setInitialTime(initialTime);
         sendNotification("Tiempo iniciado", `Tarea ${task.name} ha sido iniciada!`);
         stopwatch.start();
-        setPlayingTaskId(id);
+        setTaskStopWatch({
+            id,
+            clockTime: stopwatch.getClockTime(),
+        });
         setIsPlaying(true);
         if (!timeInterval) {
             const interval = setInterval(() => {
                 setElapsedTime(stopwatch.getElapsedTimeInMilliseconds());
-                setClockTime(stopwatch.getClockTime());
+                setTaskStopWatch({
+                    id,
+                    clockTime: stopwatch.getClockTime(),
+                });
             }, 1000);
             setTimeInterval(interval);
         }
@@ -134,7 +146,10 @@ export default function Task() {
         }
         sendNotification("Tiempo pausado", `Tarea ${task.name} ha sido pausada!`);
         stopwatch.pause();
-        setPlayingTaskId(null);
+        setTaskStopWatch({
+            id: "",
+            clockTime: "00:00:00",
+        });
         setIsPlaying(false);
         // Limpiar el intervalo cuando pausamos
         if (timeInterval) {
@@ -351,20 +366,20 @@ export default function Task() {
                                 <p className="pb-2">{task.description}</p>
                                 <p className="text-sm"><span className="font-bold font-size-xs">Creación:</span> {task.createdAt}</p>
                                 <p className="text-sm"><span className="font-bold font-size-xs">Actualización:</span> {task.updatedAt}</p>
-                                <p className="text-sm"><span className="font-bold font-size-xs">Tiempo transcurrido:</span> {playingTaskId === task.id ? clockTime : task.elapsedTime || '00:00:00'}</p>
+                                <p className="text-sm"><span className="font-bold font-size-xs">Tiempo transcurrido:</span> {taskStopWatch.id === task.id ? taskStopWatch.clockTime : task.elapsedTime || '00:00:00'}</p>
                             </CardContent>
                             <CardFooter>
                                 <p className="text-sm"><span className="font-bold">Status:</span> {task.status}</p>
                             </CardFooter>
                             <CardAction className="w-full">
                                 <div className="flex gap-2 justify-end">
-                                    <Button disabled={isPlaying && playingTaskId !== task.id} onClick={async () => {
-                                        if (playingTaskId === task.id) {
+                                    <Button disabled={isPlaying && taskStopWatch.id !== task.id} onClick={async () => {
+                                        if (taskStopWatch.id === task.id) {
                                             await pause(task.id);
                                         } else {
                                             await start(task.id);
                                         }
-                                    }} variant={playingTaskId === task.id ? "outline" : "default"}>{playingTaskId === task.id ? <Pause /> : <Play />}</Button>
+                                    }} variant={taskStopWatch.id === task.id ? "outline" : "default"}>{taskStopWatch.id === task.id ? <Pause /> : <Play />}</Button>
                                     <Button variant="outline" onClick={() => openEditDialog(task.id)}><Pencil />Editar</Button>
                                     <Button variant="destructive" onClick={() => handleDeleteTask(task.id)}><Minus />Eliminar</Button>
                                 </div>
