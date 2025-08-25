@@ -80,6 +80,7 @@ export default function Task() {
     const [dialogDescription, setDialogDescription] = useState<string>("");
     const [timeInterval, setTimeInterval] = useState<NodeJS.Timeout | null>(null);
     const [clockTime, setClockTime] = useState<string>("00:00:00");
+    const [isPlaying, setIsPlaying] = useState<boolean>(false);
     const [stopwatch] = useState<Stopwatch>(() => new Stopwatch());
 
     const form = useForm<z.infer<typeof FormSchema>>({
@@ -115,7 +116,7 @@ export default function Task() {
         sendNotification("Tiempo iniciado", `Tarea ${task.name} ha sido iniciada!`);
         stopwatch.start();
         setPlayingTaskId(id);
-        
+        setIsPlaying(true);
         if (!timeInterval) {
             const interval = setInterval(() => {
                 setElapsedTime(stopwatch.getElapsedTimeInMilliseconds());
@@ -134,7 +135,7 @@ export default function Task() {
         sendNotification("Tiempo pausado", `Tarea ${task.name} ha sido pausada!`);
         stopwatch.pause();
         setPlayingTaskId(null);
-
+        setIsPlaying(false);
         // Limpiar el intervalo cuando pausamos
         if (timeInterval) {
             clearInterval(timeInterval);
@@ -357,7 +358,7 @@ export default function Task() {
                             </CardFooter>
                             <CardAction className="w-full">
                                 <div className="flex gap-2 justify-end">
-                                    <Button onClick={async () => {
+                                    <Button disabled={isPlaying && playingTaskId !== task.id} onClick={async () => {
                                         if (playingTaskId === task.id) {
                                             await pause(task.id);
                                         } else {
