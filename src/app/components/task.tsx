@@ -21,7 +21,7 @@ import {
     CardTitle,
 } from "@/components/ui/card"
 import { useEffect, useState } from "react";
-import { Plus } from "lucide-react"
+import { Minus, Pencil, Plus } from "lucide-react"
 
 function useTasksUseCase() {
     return DiContainer.getInstance().get(GetTasksUserCase)
@@ -59,7 +59,7 @@ export default function Task() {
     const handleAddTask = async () => {
         const task = await addTaskUseCase.execute({
             name: "Task 1",
-            description: "Description 1",
+            description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.",
         });
         setTasks([...tasks, task as TaskType]);
         setIsOpen(false);
@@ -72,45 +72,52 @@ export default function Task() {
 
     return (
         <div>
-            <h1 className="text-2xl font-bold">Task</h1>
+            <h1 className="text-2xl font-bold">Lista de Tareas</h1>
             <div className="flex justify-end mb-4">
                 <Dialog open={isOpen} onOpenChange={setIsOpen}>
                     <DialogTrigger asChild>
-                        <Button><Plus /> Add Task</Button>
+                        <div>
+                            <Button className="hidden md:flex items-center gap-2">
+                                <Plus className="h-4 w-4" />
+                                Nueva
+                            </Button>
+                            <Button className="fixed bottom-7 right-2 z-50 md:hidden rounded-full p-3 shadow-lg">
+                                <Plus className="h-5 w-5" />
+                            </Button>
+                        </div>
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>Are you absolutely sure?</DialogTitle>
+                            <DialogTitle>Nueva Tarea</DialogTitle>
                             <DialogDescription>
-                                This action cannot be undone. This will permanently delete your account
-                                and remove your data from our servers.
+                                Agrega una nueva tarea a tu lista de tareas.
                             </DialogDescription>
                         </DialogHeader>
                         <DialogFooter>
-                            <Button onClick={handleAddTask}>Add Task</Button>
+                            <Button onClick={handleAddTask}>Agregar</Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-4 max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-4 max-w-7xl mx-auto place-items-center sm:place-items-stretch">
                 {
                     tasks.map((task) => (
-                        <Card key={task.id} className="p-4">
+                        <Card key={task.id} className="p-4 w-70 sm:w-full">
                             <CardHeader>
                                 <CardTitle>{task.name}</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p>{task.description}</p>
-                                <p>{task.createdAt}</p>
-                                <p>{task.updatedAt}</p>
+                                <p className="pb-2">{task.description}</p>
+                                <p className="text-sm"><span className="font-bold font-size-xs">Created:</span> {task.createdAt}</p>
+                                <p className="text-sm"><span className="font-bold font-size-xs">Updated:</span> {task.updatedAt}</p>
                             </CardContent>
                             <CardFooter>
-                                <p>{task.status}</p>
+                                <p className="text-sm"><span className="font-bold">Status:</span> {task.status}</p>
                             </CardFooter>
                             <CardAction className="w-full">
                                 <div className="flex gap-2 justify-end">
-                                    <Button>Edit</Button>
-                                    <Button onClick={() => handleDeleteTask(task.id)}>Delete</Button>
+                                    <Button variant="outline"><Pencil />Editar</Button>
+                                    <Button variant="destructive" onClick={() => handleDeleteTask(task.id)}><Minus />Eliminar</Button>
                                 </div>
                             </CardAction>
                         </Card>
