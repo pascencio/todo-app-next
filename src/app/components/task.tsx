@@ -4,7 +4,6 @@ import { TaskEntity, TaskStatus } from "@/app/lib/app/task/task.entity";
 import { AddTaskUserCase, GetTasksUserCase } from "@/app/lib/app/task/task.usecase";
 import { DiContainer } from "@/app/lib/di/di";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
     Dialog,
     DialogContent,
@@ -14,7 +13,14 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import {
+    Card,
+    CardAction,
+    CardContent,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card"
 import { useEffect, useState } from "react";
 import { Plus } from "lucide-react"
 
@@ -26,39 +32,11 @@ function useAddTaskUseCase() {
     return DiContainer.getInstance().get(AddTaskUserCase)
 }
 
-export const columns: ColumnDef<TaskEntity>[] = [
-    {
-        accessorKey: "name",
-        header: "Name",
-    },
-    {
-        accessorKey: "description",
-        header: "Description",
-    },
-    {
-        accessorKey: "createdAt",
-        header: "Created At",
-    },
-    {
-        accessorKey: "updatedAt",
-        header: "Updated At",
-    },
-    {
-        accessorKey: "status",
-        header: "Status",
-    }
-]
-
 export default function Task() {
     const [tasks, setTasks] = useState<TaskEntity[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const addTaskUseCase = useAddTaskUseCase();
     const getTasksUseCase = useTasksUseCase();
-    const table = useReactTable({
-        data: tasks,
-        columns,
-        getCoreRowModel: getCoreRowModel(),
-    })
 
     useEffect(() => {
         const fetchTasks = async () => {
@@ -72,7 +50,7 @@ export default function Task() {
         };
 
         fetchTasks();
-    }, [getTasksUseCase]); 
+    }, [getTasksUseCase]);
 
     const handleAddTask = async () => {
         const task = await addTaskUseCase.execute({
@@ -84,7 +62,6 @@ export default function Task() {
             status: TaskStatus.PENDING
         });
         setTasks([...tasks, task]);
-        await new Promise(resolve => setTimeout(resolve, 1000));
         setIsOpen(false);
     }
     return (
@@ -109,36 +86,28 @@ export default function Task() {
                     </DialogContent>
                 </Dialog>
             </div>
-            <div>
-                <Table>
-                    <TableHeader>
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => {
-                                    return (
-                                        <TableHead key={header.id}>
-                                            {header.isPlaceholder
-                                                ? null
-                                                : flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
-                                                )}
-                                        </TableHead>
-                                    )
-                                })}
-                            </TableRow>
-                        ))}
-                    </TableHeader>
-                    <TableBody>
-                        {table.getRowModel().rows.map((row) => (
-                            <TableRow key={row.id}>
-                                {row.getVisibleCells().map((cell) => (
-                                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                                ))}
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6 p-4">
+                {
+                    tasks.map((task) => (
+                        <Card key={task.id} className="p-4">
+                            <CardHeader>
+                                <CardTitle>{task.name}</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p>{task.description}</p>
+                            </CardContent>
+                            <CardFooter>
+                                <p>{task.status}</p>
+                            </CardFooter>
+                            <CardAction className="w-full">
+                                <div className="flex gap-2 justify-end">
+                                    <Button>Edit</Button>
+                                    <Button>Delete</Button>
+                                    </div>
+                            </CardAction>
+                        </Card>
+                    ))
+                }
             </div>
         </div>
     );
