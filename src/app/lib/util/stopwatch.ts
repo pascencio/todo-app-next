@@ -17,10 +17,10 @@ export class Stopwatch {
         this.isRunning = false;
     }
 
-    setInitialTime(accumulatedTime: number) {
+    setInitialTime(startedAt: number, accumulatedTime: number) {
         // Asegurar que el stopwatch esté parado antes de establecer el tiempo acumulado
         this.isRunning = false;
-        this.startTime = 0;
+        this.startTime = startedAt;
         this.accumulatedTime = accumulatedTime;
     }
 

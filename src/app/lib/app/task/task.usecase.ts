@@ -28,8 +28,9 @@ export class AddTaskUserCase {
             updatedAt: now,
             name: task.name,
             description: task.description,
-            elapsedTime: 0, // Inicializar en 0 milisegundos
-            status: task.status || TaskStatus.PENDING
+            elapsedTime: 0,
+            status: TaskStatus.PENDING,
+            startedAt: 0
         });
 
         // Convertir a la interfaz Task con fechas formateadas
@@ -41,6 +42,7 @@ export class AddTaskUserCase {
             updatedAt: dayjs(taskEntity.updatedAt).fromNow(),
             elapsedTime: taskEntity.elapsedTime ? dayjs.duration(taskEntity.elapsedTime).format('HH:mm:ss') : '00:00:00',
             elapsedTimeInMilliseconds: taskEntity.elapsedTime ? taskEntity.elapsedTime : 0,
+            startedTimeInMilliseconds: taskEntity.startedAt,
             status: taskEntity.status
         };
     }
@@ -53,7 +55,8 @@ export interface Task {
     createdAt?: string;
     updatedAt?: string;
     elapsedTime?: string;
-    elapsedTimeInMilliseconds?: number;
+    elapsedTimeInMilliseconds: number;
+    startedTimeInMilliseconds: number;
     status: TaskStatus;
 }
 
@@ -73,8 +76,9 @@ export class GetTasksUserCase {
                 description: task.description,
                 createdAt: dayjs(task.createdAt).format('DD/MM/YYYY HH:mm'),
                 updatedAt: dayjs(task.updatedAt).fromNow(),
-                elapsedTime: task.elapsedTime ? dayjs.duration(task.elapsedTime).format('HH:mm:ss') : '00:00:00',
-                elapsedTimeInMilliseconds: task.elapsedTime ? task.elapsedTime : 0,
+                elapsedTime: dayjs.duration(task.elapsedTime).format('HH:mm:ss'),
+                elapsedTimeInMilliseconds: task.elapsedTime,
+                startedTimeInMilliseconds: task.startedAt,
                 status: task.status
             })) as Task[]
         };
@@ -107,13 +111,24 @@ export class UpdateTaskUserCase {
     }
 
     async execute(input: UpdateTaskInput): Promise<Task> {
+        const task = await this.taskOutput.getTaskById(input.id);
+        if (!task) {
+            throw new Error("Task not found");
+        }
+        let statedAt = 0;
+        if (input.status === TaskStatus.IN_PROGRESS && task.status !== TaskStatus.IN_PROGRESS) {
+            statedAt = Date.now();
+        } else if (input.status !== TaskStatus.IN_PROGRESS && task.status === TaskStatus.IN_PROGRESS) {
+            statedAt = task.startedAt;
+        }
         const taskEntity = await this.taskOutput.updateTask(input.id, {
             id: input.id,
             updatedAt: new Date(),
             name: input.name,
             description: input.description,
             status: input.status,
-            elapsedTime: input.elapsedTime
+            elapsedTime: input.elapsedTime,
+            startedAt: statedAt
         });
         return {
             id: taskEntity.id,
@@ -123,6 +138,7 @@ export class UpdateTaskUserCase {
             updatedAt: dayjs(taskEntity.updatedAt).fromNow(),
             elapsedTime: taskEntity.elapsedTime ? dayjs.duration(taskEntity.elapsedTime).format('HH:mm:ss') : '00:00:00',
             elapsedTimeInMilliseconds: taskEntity.elapsedTime ? taskEntity.elapsedTime : 0,
+            startedTimeInMilliseconds: taskEntity.startedAt,
             status: taskEntity.status
         };
     }

@@ -114,9 +114,9 @@ export default function Task() {
         }
 
         // Usar el tiempo acumulado de la tarea o 0 si no existe
-        const initialTime = task.elapsedTimeInMilliseconds || 0;
-        console.log("Setting initial time to:", initialTime);
-        stopwatch.setInitialTime(initialTime);
+        const accumulatedTime = task.elapsedTimeInMilliseconds;
+        console.log("Setting initial time to:", accumulatedTime);
+        stopwatch.setInitialTime(task.startedTimeInMilliseconds, accumulatedTime);
         sendNotification("Tiempo iniciado", `Tarea ${task.name} ha sido iniciada!`);
         stopwatch.start();
         const updatedTask = await updateTaskUseCase.execute({
