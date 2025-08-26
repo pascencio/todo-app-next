@@ -113,7 +113,7 @@ export default function Task() {
         const now = Date.now();
         if (task.status === TaskStatus.IN_PROGRESS) {
             console.log("task is already in progress");
-            accumulatedTime+= now - task.startedTimeInMilliseconds;
+            accumulatedTime+= now - task.startedTimeInMilliseconds; // TODO: Esta lógica debería estar en la clase de dominio
             startedTime = task.startedTimeInMilliseconds;
         }
         console.log("Setting initial");

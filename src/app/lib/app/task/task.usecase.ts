@@ -119,6 +119,7 @@ export class UpdateTaskUserCase {
         if (!task) {
             throw new Error("Task not found");
         }
+        // TODO: La lógica de como se almacena el tiempo de inicio dependiendo del estado de la tarea debería estar en la clase de dominio
         let statedAt = 0;
         if (input.status === TaskStatus.IN_PROGRESS && task.status !== TaskStatus.IN_PROGRESS) {
             statedAt = Date.now();
