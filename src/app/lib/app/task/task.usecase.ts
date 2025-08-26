@@ -14,6 +14,7 @@ export interface AddTaskInput {
     name: string;
     description: string;
     status?: TaskStatus;
+    tags: string[];
 }
 
 export class AddTaskUserCase {
@@ -30,7 +31,8 @@ export class AddTaskUserCase {
             description: task.description,
             elapsedTime: 0,
             status: TaskStatus.PENDING,
-            startedAt: 0
+            startedAt: 0,
+            tags: task.tags
         });
 
         // Convertir a la interfaz Task con fechas formateadas
@@ -43,7 +45,8 @@ export class AddTaskUserCase {
             elapsedTime: taskEntity.elapsedTime ? dayjs.duration(taskEntity.elapsedTime).format('HH:mm:ss') : '00:00:00',
             elapsedTimeInMilliseconds: taskEntity.elapsedTime ? taskEntity.elapsedTime : 0,
             startedTimeInMilliseconds: taskEntity.startedAt,
-            status: taskEntity.status
+            status: taskEntity.status,
+            tags: taskEntity.tags
         };
     }
 }
@@ -58,6 +61,7 @@ export interface Task {
     elapsedTimeInMilliseconds: number;
     startedTimeInMilliseconds: number;
     status: TaskStatus;
+    tags: string[];
 }
 
 export interface GetTasksOutput {
@@ -83,7 +87,8 @@ export class GetTasksUserCase {
                     elapsedTime: dayjs.duration(task.elapsedTime).format('HH:mm:ss'),
                     elapsedTimeInMilliseconds: task.elapsedTime,
                     startedTimeInMilliseconds: task.startedAt,
-                    status: task.status
+                    status: task.status,
+                    tags: task.tags
                 })) as Task[]
         };
     }
@@ -108,6 +113,7 @@ export interface UpdateTaskInput {
     description: string;
     status: TaskStatus;
     elapsedTime: number;
+    tags: string[];
 }
 
 export class UpdateTaskUserCase {
@@ -134,7 +140,8 @@ export class UpdateTaskUserCase {
             status: input.status,
             elapsedTime: input.elapsedTime,
             startedAt: statedAt,
-            createdAt: task.createdAt
+            createdAt: task.createdAt,
+            tags: input.tags
         });
         return {
             id: taskEntity.id,
@@ -145,7 +152,8 @@ export class UpdateTaskUserCase {
             elapsedTime: taskEntity.elapsedTime ? dayjs.duration(taskEntity.elapsedTime).format('HH:mm:ss') : '00:00:00',
             elapsedTimeInMilliseconds: taskEntity.elapsedTime ? taskEntity.elapsedTime : 0,
             startedTimeInMilliseconds: taskEntity.startedAt,
-            status: taskEntity.status
+            status: taskEntity.status,
+            tags: taskEntity.tags
         };
     }
 }

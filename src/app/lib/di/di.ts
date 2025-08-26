@@ -80,7 +80,8 @@ function createContainer(): void {
                             createdAt: new Date(),
                             updatedAt: new Date(),
                             elapsedTime: 0,
-                            startedAt: 0
+                            startedAt: 0,
+                            tags: []
                         }
                     }
                 } satisfies TaskOutput;

@@ -39,7 +39,9 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Stopwatch } from "@/app/lib/util/stopwatch";
-import { sendNotification } from "../lib/util/notification";
+import { Badge } from "@/components/ui/badge"
+import { sendNotification } from "@/app/lib/util/notification";
+import { TagsInput } from "@/app/components/tags-input";
 
 function useTasksUseCase() {
     return DiContainer.getInstance().get(GetTasksUserCase)
@@ -63,6 +65,9 @@ const FormSchema = z.object({
     }),
     description: z.string().min(1, {
         message: "Description is required.",
+    }),
+    tags: z.array(z.string()).min(1, {
+        message: "Tags are required.",
     }),
 })
 
@@ -93,6 +98,7 @@ export default function Task() {
         defaultValues: {
             title: "",
             description: "",
+            tags: [],
         },
     })
     const addTaskUseCase = useAddTaskUseCase();
@@ -113,7 +119,7 @@ export default function Task() {
         const now = Date.now();
         if (task.status === TaskStatus.IN_PROGRESS) {
             console.log("task is already in progress");
-            accumulatedTime+= now - task.startedTimeInMilliseconds; // TODO: Esta lógica debería estar en la clase de dominio
+            accumulatedTime += now - task.startedTimeInMilliseconds; // TODO: Esta lógica debería estar en la clase de dominio
             startedTime = task.startedTimeInMilliseconds;
         }
         console.log("Setting initial");
@@ -128,7 +134,8 @@ export default function Task() {
             elapsedTime: stopwatch.getElapsedTimeInMilliseconds(),
             name: task.name,
             description: task.description,
-            status: TaskStatus.IN_PROGRESS
+            status: TaskStatus.IN_PROGRESS,
+            tags: task.tags
         });
         console.log("updatedTask on start", updatedTask);
         setTasks(tasksToUse.map((task) => task.id === id ? updatedTask as unknown as TaskType : task));
@@ -175,7 +182,8 @@ export default function Task() {
             elapsedTime: stopwatch.getElapsedTimeInMilliseconds(),
             name: task.name,
             description: task.description,
-            status: TaskStatus.PAUSED
+            status: TaskStatus.PAUSED,
+            tags: task.tags
         });
         console.log("updatedTask on pause", updatedTask);
         setTasks(tasks.map((task) => task.id === id ? updatedTask as unknown as TaskType : task));
@@ -210,14 +218,16 @@ export default function Task() {
             console.error("Task not found");
             return;
         }
-        await updateTaskUseCase.execute({ 
-            id, 
-            name: data.title, 
-            description: data.description, 
-            elapsedTime: task.elapsedTimeInMilliseconds || 0, 
-            status: task.status as TaskStatus 
+        console.log("data", data);
+        await updateTaskUseCase.execute({
+            id,
+            name: data.title,
+            description: data.description,
+            elapsedTime: task.elapsedTimeInMilliseconds,
+            status: task.status as TaskStatus,
+            tags: data.tags
         });
-        setTasks(tasks.map((task) => task.id === id ? { ...task, name: data.title, description: data.description } : task));
+        setTasks(tasks.map((task) => task.id === id ? { ...task, name: data.title, description: data.description, tags: data.tags } : task));
     }
 
     const onOpenChange = (status: boolean) => {
@@ -250,7 +260,8 @@ export default function Task() {
         console.log("task", task);
         setEditTaskId(id);
         form.setValue("title", task.name);
-        form.setValue("description", task?.description || "");
+        form.setValue("description", task.description);
+        form.setValue("tags", task.tags);
         setDialogTitle("Editar Tarea");
         setDialogDescription("Edita la tarea seleccionada.");
         setIsEditOpen(true);
@@ -271,6 +282,7 @@ export default function Task() {
                 const task = await addTaskUseCase.execute({
                     name: data.title,
                     description: data.description,
+                    tags: data.tags,
                 });
                 setTasks([...tasks, task as TaskType]);
             }
@@ -338,6 +350,26 @@ export default function Task() {
                                         </FormItem>
                                     )}
                                 />
+                                <FormField
+                                    control={form.control}
+                                    name="tags"
+                                    render={({ field }: { field: any }) => (
+                                        <FormItem>
+                                            <FormLabel>Etiquetas</FormLabel>
+                                            <FormControl>
+                                                <TagsInput
+                                                    placeholder="Agrega etiquetas a la tarea"
+                                                    value={field.value}
+                                                    onValueChange={field.onChange}
+                                                    maxTags={8}
+                                                    allowDuplicates={false}
+                                                    separators={[',', 'Enter']}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                             </div>
                         </Form>
                         <DialogFooter>
@@ -359,10 +391,13 @@ export default function Task() {
                                 <p className="text-sm"><span className="font-bold font-size-xs">Creación:</span> {task.createdAt}</p>
                                 <p className="text-sm"><span className="font-bold font-size-xs">Actualización:</span> {task.updatedAt}</p>
                                 <p className="text-sm"><span className="font-bold font-size-xs">Tiempo transcurrido:</span> {taskStopWatch.id === task.id ? taskStopWatch.clockTime : task.elapsedTime || '00:00:00'}</p>
-                            </CardContent>
-                            <CardFooter>
                                 <p className="text-sm"><span className="font-bold">Status:</span> {task.status === TaskStatus.IN_PROGRESS ? "En progreso" : task.status === TaskStatus.PAUSED ? "Pausada" : task.status === TaskStatus.COMPLETED ? "Completada" : "Pendiente"}</p>
-                            </CardFooter>
+                                <div className="mt-2 flex gap-2">
+                                    {task.tags.map((tag) => (
+                                        <Badge key={tag}>{tag}</Badge>
+                                    ))}
+                                </div>
+                            </CardContent>
                             <CardAction className="w-full">
                                 <div className="flex gap-2 justify-end">
                                     {

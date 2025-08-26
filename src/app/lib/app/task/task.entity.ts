@@ -15,4 +15,5 @@ export interface TaskEntity {
     elapsedTime: number;
     startedAt: number;
     status: TaskStatus;
+    tags: string[];
 }
