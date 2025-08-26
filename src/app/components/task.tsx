@@ -112,19 +112,13 @@ export default function Task() {
             console.error("Task not found");
             return;
         }
-        console.log("task on start", task);
         let accumulatedTime = task.elapsedTimeInMilliseconds;
         let startedTime = task.startedTimeInMilliseconds;
         const now = Date.now();
         if (task.status === TaskStatus.IN_PROGRESS) {
-            console.log("task is already in progress");
             accumulatedTime += now - task.startedTimeInMilliseconds; // TODO: Esta lógica debería estar en la clase de dominio
             startedTime = task.startedTimeInMilliseconds;
         }
-        console.log("Setting initial");
-        console.log("accumulatedTime:", accumulatedTime);
-        console.log("startedTime:", startedTime);
-        console.log("now:", now);
         stopwatch.setInitialTime(startedTime, accumulatedTime);
         sendNotification("Tiempo iniciado", `Tarea ${task.name} ha sido iniciada!`);
         stopwatch.start();
@@ -136,7 +130,6 @@ export default function Task() {
             status: TaskStatus.IN_PROGRESS,
             tags: task.tags
         });
-        console.log("updatedTask on start", updatedTask);
         setTasks(tasksToUse.map((task) => task.id === id ? updatedTask as unknown as TaskType : task));
         setTaskStopWatch({
             id,
@@ -184,7 +177,6 @@ export default function Task() {
             status: TaskStatus.PAUSED,
             tags: task.tags
         });
-        console.log("updatedTask on pause", updatedTask);
         setTasks(tasks.map((task) => task.id === id ? updatedTask as unknown as TaskType : task));
     }
 
@@ -218,7 +210,6 @@ export default function Task() {
             console.error("Task not found");
             return;
         }
-        console.log("data", data);
         await updateTaskUseCase.execute({
             id,
             name: data.title,
@@ -250,14 +241,12 @@ export default function Task() {
     }
 
     const openEditDialog = (id: string) => {
-        console.log("openEditDialog", id);
         const task = tasks.find((task) => task.id === id);
         if (!task) {
             console.error("Task not found");
             // TODO: Show error message
             return;
         }
-        console.log("task", task);
         setEditTaskId(id);
         form.setValue("title", task.name);
         form.setValue("description", task.description);
