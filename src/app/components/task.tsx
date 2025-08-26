@@ -17,7 +17,6 @@ import {
     Card,
     CardAction,
     CardContent,
-    CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
@@ -205,6 +204,7 @@ export default function Task() {
         };
 
         fetchTasks();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [getTasksUseCase]);
 
     const handleDeleteTask = async (id: string) => {
@@ -353,7 +353,7 @@ export default function Task() {
                                 <FormField
                                     control={form.control}
                                     name="tags"
-                                    render={({ field }: { field: any }) => (
+                                    render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Etiquetas</FormLabel>
                                             <FormControl>
