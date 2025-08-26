@@ -69,18 +69,22 @@ export class GetTasksUserCase {
     }
 
     async execute(): Promise<GetTasksOutput> {
+        const tasks = await this.taskOutput.getTasks();
+        
         return {
-            tasks: (await this.taskOutput.getTasks()).map((task) => ({
-                id: task.id,
-                name: task.name,
-                description: task.description,
-                createdAt: dayjs(task.createdAt).format('DD/MM/YYYY HH:mm'),
-                updatedAt: dayjs(task.updatedAt).fromNow(),
-                elapsedTime: dayjs.duration(task.elapsedTime).format('HH:mm:ss'),
-                elapsedTimeInMilliseconds: task.elapsedTime,
-                startedTimeInMilliseconds: task.startedAt,
-                status: task.status
-            })) as Task[]
+            tasks: tasks
+                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // Más recientes primero
+                .map((task) => ({
+                    id: task.id,
+                    name: task.name,
+                    description: task.description,
+                    createdAt: dayjs(task.createdAt).format('DD/MM/YYYY HH:mm'),
+                    updatedAt: dayjs(task.updatedAt).fromNow(),
+                    elapsedTime: dayjs.duration(task.elapsedTime).format('HH:mm:ss'),
+                    elapsedTimeInMilliseconds: task.elapsedTime,
+                    startedTimeInMilliseconds: task.startedAt,
+                    status: task.status
+                })) as Task[]
         };
     }
 }
@@ -128,7 +132,8 @@ export class UpdateTaskUserCase {
             description: input.description,
             status: input.status,
             elapsedTime: input.elapsedTime,
-            startedAt: statedAt
+            startedAt: statedAt,
+            createdAt: task.createdAt
         });
         return {
             id: taskEntity.id,

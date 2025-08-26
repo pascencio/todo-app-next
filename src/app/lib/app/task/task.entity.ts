@@ -10,7 +10,7 @@ export interface TaskEntity {
     id: string;
     name: string;
     description: string;
-    createdAt?: Date;
+    createdAt: Date;
     updatedAt: Date;
     elapsedTime: number;
     startedAt: number;
