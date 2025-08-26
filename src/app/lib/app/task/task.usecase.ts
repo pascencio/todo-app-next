@@ -118,7 +118,7 @@ export class UpdateTaskUserCase {
         let statedAt = 0;
         if (input.status === TaskStatus.IN_PROGRESS && task.status !== TaskStatus.IN_PROGRESS) {
             statedAt = Date.now();
-        } else if (input.status !== TaskStatus.IN_PROGRESS && task.status === TaskStatus.IN_PROGRESS) {
+        } else if (input.status === TaskStatus.IN_PROGRESS && task.status === TaskStatus.IN_PROGRESS) {
             statedAt = task.startedAt;
         }
         const taskEntity = await this.taskOutput.updateTask(input.id, {

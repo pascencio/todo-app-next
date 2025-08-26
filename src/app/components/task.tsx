@@ -100,23 +100,27 @@ export default function Task() {
     const deleteTaskUseCase = useDeleteTaskUseCase();
     const updateTaskUseCase = useUpdateTaskUseCase();
 
-    const start = async (id: string) => {
-        const task = tasks.find((task) => task.id === id);
+    const start = async (id: string, currentTasks?: TaskType[]) => {
+        const tasksToUse = currentTasks ?? tasks;
+        const task = tasksToUse.find((task) => task.id === id);
         if (!task) {
             console.error("Task not found");
             return;
         }
         console.log("task on start", task);
-
-        // Si ya hay una tarea ejecutándose, pausarla primero
-        if (taskStopWatch.id && taskStopWatch.id !== id) {
-            await pause(taskStopWatch.id);
+        let accumulatedTime = task.elapsedTimeInMilliseconds;
+        let startedTime = task.startedTimeInMilliseconds;
+        const now = Date.now();
+        if (task.status === TaskStatus.IN_PROGRESS) {
+            console.log("task is already in progress");
+            accumulatedTime+= now - task.startedTimeInMilliseconds;
+            startedTime = task.startedTimeInMilliseconds;
         }
-
-        // Usar el tiempo acumulado de la tarea o 0 si no existe
-        const accumulatedTime = task.elapsedTimeInMilliseconds;
-        console.log("Setting initial time to:", accumulatedTime);
-        stopwatch.setInitialTime(task.startedTimeInMilliseconds, accumulatedTime);
+        console.log("Setting initial");
+        console.log("accumulatedTime:", accumulatedTime);
+        console.log("startedTime:", startedTime);
+        console.log("now:", now);
+        stopwatch.setInitialTime(startedTime, accumulatedTime);
         sendNotification("Tiempo iniciado", `Tarea ${task.name} ha sido iniciada!`);
         stopwatch.start();
         const updatedTask = await updateTaskUseCase.execute({
@@ -127,7 +131,7 @@ export default function Task() {
             status: TaskStatus.IN_PROGRESS
         });
         console.log("updatedTask on start", updatedTask);
-        setTasks(tasks.map((task) => task.id === id ? updatedTask as unknown as TaskType : task));
+        setTasks(tasksToUse.map((task) => task.id === id ? updatedTask as unknown as TaskType : task));
         setTaskStopWatch({
             id,
             clockTime: stopwatch.getClockTime(),
@@ -182,6 +186,10 @@ export default function Task() {
             try {
                 const { tasks } = await getTasksUseCase.execute();
                 setTasks(tasks as TaskType[]);
+                const taskInProgress = tasks.find((task) => task.status === TaskStatus.IN_PROGRESS);
+                if (taskInProgress) {
+                    start(taskInProgress.id, tasks as TaskType[]);
+                }
             } catch (error) {
                 console.error('Error fetching tasks:', error);
                 setTasks([]);

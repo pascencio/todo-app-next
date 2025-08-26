@@ -33,7 +33,6 @@ export class Stopwatch {
 
     pause(): void {
         if (this.isRunning) {
-            // Cuando pausamos, acumulamos el tiempo transcurrido
             this.accumulatedTime += Date.now() - this.startTime;
             this.isRunning = false;
         }
