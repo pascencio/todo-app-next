@@ -393,7 +393,7 @@ export default function Task() {
                                 <p className="text-sm"><span className="font-bold font-size-xs">Tiempo transcurrido:</span> {taskStopWatch.id === task.id ? taskStopWatch.clockTime : task.elapsedTime || '00:00:00'}</p>
                                 <p className="text-sm"><span className="font-bold">Status:</span> {task.status === TaskStatus.IN_PROGRESS ? "En progreso" : task.status === TaskStatus.PAUSED ? "Pausada" : task.status === TaskStatus.COMPLETED ? "Completada" : "Pendiente"}</p>
                                 <div className="mt-2 flex gap-2">
-                                    {task.tags.map((tag) => (
+                                    {(task.tags ?? []).map((tag) => (
                                         <Badge key={tag}>{tag}</Badge>
                                     ))}
                                 </div>
