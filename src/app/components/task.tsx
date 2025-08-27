@@ -371,7 +371,7 @@ export default function Task() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-4 max-w-7xl mx-auto place-items-center sm:place-items-stretch">
                 {
                     tasks.map((task) => (
-                        <Card key={task.id} className="p-4 w-70 sm:w-full">
+                        <Card key={task.id} className={`p-4 w-70 sm:w-full ${task.status === TaskStatus.IN_PROGRESS ? "bg-green-500" : task.status === TaskStatus.PAUSED ? "bg-yellow-500" : task.status === TaskStatus.COMPLETED ? "bg-blue-500" : "bg-red-500"}`}>
                             <CardHeader>
                                 <CardTitle>{task.name}</CardTitle>
                             </CardHeader>
@@ -379,8 +379,8 @@ export default function Task() {
                                 <p className="pb-2">{task.description}</p>
                                 <p className="text-sm"><span className="font-bold font-size-xs">Creación:</span> {task.createdAt}</p>
                                 <p className="text-sm"><span className="font-bold font-size-xs">Actualización:</span> {task.updatedAt}</p>
-                                <p className="text-sm"><span className="font-bold font-size-xs">Tiempo transcurrido:</span> {taskStopWatch.id === task.id ? taskStopWatch.clockTime : task.elapsedTime || '00:00:00'}</p>
-                                <p className="text-sm"><span className="font-bold">Status:</span> {task.status === TaskStatus.IN_PROGRESS ? "En progreso" : task.status === TaskStatus.PAUSED ? "Pausada" : task.status === TaskStatus.COMPLETED ? "Completada" : "Pendiente"}</p>
+                                <p className="text-sm"><span className="font-bold font-size-xs">Tiempo:</span> <Badge className="bg-white text-black ml-2">{taskStopWatch.id === task.id ? taskStopWatch.clockTime : task.elapsedTime || '00:00:00'}</Badge></p>
+                                <p className="text-sm"><span className="font-bold font-size-xs">Status:</span> {task.status === TaskStatus.IN_PROGRESS ? "En progreso" : task.status === TaskStatus.PAUSED ? "Pausada" : task.status === TaskStatus.COMPLETED ? "Completada" : "Pendiente"}</p>
                                 <div className="mt-2 flex gap-2">
                                     {(task.tags ?? []).map((tag) => (
                                         <Badge key={tag}>{tag}</Badge>
