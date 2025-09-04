@@ -6,6 +6,19 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
 
+export function formatTime(time: number): string {
+    const totalMilliseconds = time;
+    const totalSeconds = Math.floor(totalMilliseconds / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const hh = hours.toString().padStart(2, '0')
+    const mm = minutes.toString().padStart(2, '0')
+    const ss = seconds.toString().padStart(2, '0')
+    const formatted = `${hh}:${mm}:${ss}`;
+    return formatted;
+}
+
 export class Stopwatch {
     private startTime: number;
     private accumulatedTime: number; // Tiempo acumulado hasta ahora
@@ -94,15 +107,13 @@ export class Stopwatch {
     }
 
     getClockTime(): string {
-        const elapsed = this.getElapsedTime();
-        const duration = dayjs.duration(elapsed);
-        return duration.format('HH:mm:ss');
+        return formatTime(this.getElapsedTime());
     }
 
     getFormattedDuration(): string {
         const elapsed = this.getElapsedTime();
         const duration = dayjs.duration(elapsed);
-        
+
         if (duration.asHours() >= 1) {
             return duration.format('H[h] m[m] s[s]');
         } else if (duration.asMinutes() >= 1) {

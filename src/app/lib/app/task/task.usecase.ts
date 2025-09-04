@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import duration from 'dayjs/plugin/duration';
 import 'dayjs/locale/es';
+import { formatTime } from "../../util/stopwatch";
 
 dayjs.extend(relativeTime);
 dayjs.extend(duration);
@@ -84,7 +85,7 @@ export class GetTasksUserCase {
                     description: task.description,
                     createdAt: dayjs(task.createdAt).format('DD/MM/YYYY HH:mm'),
                     updatedAt: dayjs(task.updatedAt).fromNow(),
-                    elapsedTime: dayjs.duration(task.elapsedTime).format('HH:mm:ss'),
+                    elapsedTime: formatTime(task.elapsedTime),
                     elapsedTimeInMilliseconds: task.elapsedTime,
                     startedTimeInMilliseconds: task.startedAt,
                     status: task.status,
