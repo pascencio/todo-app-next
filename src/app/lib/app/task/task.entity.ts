@@ -14,6 +14,7 @@ export interface TaskEntity {
     updatedAt: Date;
     elapsedTime: number;
     startedAt: number;
+    dailyTime: number;
     status: TaskStatus;
     tags: string[];
 }

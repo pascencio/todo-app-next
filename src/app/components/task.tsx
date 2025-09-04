@@ -41,6 +41,7 @@ import { Stopwatch } from "@/app/lib/util/stopwatch";
 import { Badge } from "@/components/ui/badge"
 import { sendNotification } from "@/app/lib/util/notification";
 import { TagsInput } from "@/app/components/tags-input";
+import { Slider } from "@/components/ui/slider";
 
 function useTasksUseCase() {
     return DiContainer.getInstance().get(GetTasksUserCase)
@@ -60,13 +61,16 @@ function useUpdateTaskUseCase() {
 
 const FormSchema = z.object({
     title: z.string().min(1, {
-        message: "Title is required.",
+        message: "Título es requerido.",
     }),
     description: z.string().min(1, {
-        message: "Description is required.",
+        message: "Descripción es requerida.",
     }),
     tags: z.array(z.string()).min(1, {
-        message: "Tags are required.",
+        message: "Etiquetas son requeridas.",
+    }),
+    dailyTime: z.array(z.number()).min(1, {
+        message: "Horas diarias son requeridas.",
     }),
 })
 
@@ -98,6 +102,7 @@ export default function Task() {
             title: "",
             description: "",
             tags: [],
+            dailyTime: [],
         },
     })
     const addTaskUseCase = useAddTaskUseCase();
@@ -128,7 +133,8 @@ export default function Task() {
             name: task.name,
             description: task.description,
             status: TaskStatus.IN_PROGRESS,
-            tags: task.tags
+            tags: task.tags,
+            dailyTime: task.dailyTime
         });
         setTasks(tasksToUse.map((task) => task.id === id ? updatedTask as unknown as TaskType : task));
         setTaskStopWatch({
@@ -175,7 +181,8 @@ export default function Task() {
             name: task.name,
             description: task.description,
             status: TaskStatus.PAUSED,
-            tags: task.tags
+            tags: task.tags,
+            dailyTime: task.dailyTime
         });
         setTasks(tasks.map((task) => task.id === id ? updatedTask as unknown as TaskType : task));
     }
@@ -216,9 +223,10 @@ export default function Task() {
             description: data.description,
             elapsedTime: task.elapsedTimeInMilliseconds,
             status: task.status as TaskStatus,
-            tags: data.tags
+            tags: data.tags,
+            dailyTime: data.dailyTime[0]
         });
-        setTasks(tasks.map((task) => task.id === id ? { ...task, name: data.title, description: data.description, tags: data.tags } : task));
+        setTasks(tasks.map((task) => task.id === id ? { ...task, name: data.title, description: data.description, tags: data.tags, dailyTime: data.dailyTime[0] } : task));
     }
 
     const onOpenChange = (status: boolean) => {
@@ -251,6 +259,7 @@ export default function Task() {
         form.setValue("title", task.name);
         form.setValue("description", task.description);
         form.setValue("tags", task.tags);
+        form.setValue("dailyTime", [task.dailyTime]);
         setDialogTitle("Editar Tarea");
         setDialogDescription("Edita la tarea seleccionada.");
         setIsEditOpen(true);
@@ -265,6 +274,7 @@ export default function Task() {
 
     async function onSubmit(data: z.infer<typeof FormSchema>) {
         try {
+            console.log(data);
             if (isEditOpen) {
                 await handleUpdateTask(editTaskId, data);
             } else {
@@ -272,6 +282,7 @@ export default function Task() {
                     name: data.title,
                     description: data.description,
                     tags: data.tags,
+                    dailyTime: data.dailyTime[0]
                 });
                 setTasks([...tasks, task as TaskType]);
             }
@@ -359,6 +370,19 @@ export default function Task() {
                                         </FormItem>
                                     )}
                                 />
+                                <FormField
+                                    control={form.control}
+                                    name="dailyTime"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Horas diarias: {field.value[0]} horas</FormLabel>
+                                            <FormControl>
+                                            <Slider max={24} min={1} step={1} defaultValue={[1]} onValueChange={field.onChange} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                             </div>
                         </Form>
                         <DialogFooter>
@@ -379,6 +403,7 @@ export default function Task() {
                                 <p className="pb-2">{task.description}</p>
                                 <p className="text-sm"><span className="font-bold font-size-xs">Creación:</span> {task.createdAt}</p>
                                 <p className="text-sm"><span className="font-bold font-size-xs">Actualización:</span> {task.updatedAt}</p>
+                                <p className="text-sm"><span className="font-bold font-size-xs">Horas diarias:</span> <Badge className="bg-white text-black ml-2">{task.dailyTime}</Badge></p>
                                 <p className="text-sm"><span className="font-bold font-size-xs">Tiempo:</span> <Badge className="bg-white text-black ml-2">{taskStopWatch.id === task.id ? taskStopWatch.clockTime : task.elapsedTime || '00:00:00'}</Badge></p>
                                 <p className="text-sm"><span className="font-bold font-size-xs">Status:</span> {task.status === TaskStatus.IN_PROGRESS ? "En progreso" : task.status === TaskStatus.PAUSED ? "Pausada" : task.status === TaskStatus.COMPLETED ? "Completada" : "Pendiente"}</p>
                                 <div className="mt-2 flex gap-2">

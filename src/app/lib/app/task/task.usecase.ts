@@ -16,6 +16,7 @@ export interface AddTaskInput {
     description: string;
     status?: TaskStatus;
     tags: string[];
+    dailyTime: number;
 }
 
 export class AddTaskUserCase {
@@ -33,7 +34,8 @@ export class AddTaskUserCase {
             elapsedTime: 0,
             status: TaskStatus.PENDING,
             startedAt: 0,
-            tags: task.tags
+            tags: task.tags,
+            dailyTime: task.dailyTime
         });
 
         // Convertir a la interfaz Task con fechas formateadas
@@ -47,7 +49,8 @@ export class AddTaskUserCase {
             elapsedTimeInMilliseconds: taskEntity.elapsedTime ? taskEntity.elapsedTime : 0,
             startedTimeInMilliseconds: taskEntity.startedAt,
             status: taskEntity.status,
-            tags: taskEntity.tags
+            tags: taskEntity.tags,
+            dailyTime: taskEntity.dailyTime
         };
     }
 }
@@ -63,6 +66,7 @@ export interface Task {
     startedTimeInMilliseconds: number;
     status: TaskStatus;
     tags: string[];
+    dailyTime: number;
 }
 
 export interface GetTasksOutput {
@@ -89,7 +93,8 @@ export class GetTasksUserCase {
                     elapsedTimeInMilliseconds: task.elapsedTime,
                     startedTimeInMilliseconds: task.startedAt,
                     status: task.status,
-                    tags: task.tags
+                    tags: task.tags,
+                    dailyTime: task.dailyTime
                 })) as Task[]
         };
     }
@@ -114,6 +119,7 @@ export interface UpdateTaskInput {
     description: string;
     status: TaskStatus;
     elapsedTime: number;
+    dailyTime: number;
     tags: string[];
 }
 
@@ -142,6 +148,7 @@ export class UpdateTaskUserCase {
             elapsedTime: input.elapsedTime,
             startedAt: statedAt,
             createdAt: task.createdAt,
+            dailyTime: input.dailyTime,
             tags: input.tags
         });
         return {
@@ -154,7 +161,8 @@ export class UpdateTaskUserCase {
             elapsedTimeInMilliseconds: taskEntity.elapsedTime ? taskEntity.elapsedTime : 0,
             startedTimeInMilliseconds: taskEntity.startedAt,
             status: taskEntity.status,
-            tags: taskEntity.tags
+            tags: taskEntity.tags,
+            dailyTime: taskEntity.dailyTime
         };
     }
 }
