@@ -29,15 +29,15 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import {
-    HoverCard,
-    HoverCardContent,
-    HoverCardTrigger,
-} from "@/components/ui/hover-card"
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
 import { z } from "zod"
 import { Input } from "@/components/ui/input"
 
 import { useEffect, useState } from "react";
-import { Minus, Pause, Pencil, Play, Plus } from "lucide-react"
+import { Ellipsis, Minus, Pause, Pencil, Play, Plus } from "lucide-react"
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Textarea } from "@/components/ui/textarea";
@@ -402,56 +402,59 @@ export default function Task() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-4 max-w-7xl mx-auto place-items-center sm:place-items-stretch">
                 {
                     tasks.map((task) => (
-                        <HoverCard key={task.id}>
-                            <HoverCardTrigger asChild>
-                                <Card key={task.id} className={`p-4 w-70 sm:w-full ${task.status === TaskStatus.IN_PROGRESS ? "bg-gray-400" : ""}`}>
-                                    <CardHeader>
-                                        <CardTitle>
-                                            <h1 className="text-lg font-bold">{task.name}</h1>
-                                            <Separator className="my-4" />
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="flex flex-col gap-2">
-                                            <p className="text-sm"><span className="font-bold font-size-xs">Horas diarias:</span> <Badge>{task.dailyTime ?? "0"}</Badge></p>
-                                            <p className="text-sm"><span className="font-bold font-size-xs">Tiempo:</span> <Badge>{taskStopWatch.id === task.id ? taskStopWatch.clockTime : task.elapsedTime || '00:00:00'}</Badge></p>
-                                            <p className="text-sm"><span className="font-bold font-size-xs">Status:</span> <Badge variant="secondary">{task.status === TaskStatus.IN_PROGRESS ? "En progreso" : task.status === TaskStatus.PAUSED ? "Pausada" : task.status === TaskStatus.COMPLETED ? "Completada" : "Pendiente"}</Badge></p>
-                                            <div className="mt-2 flex gap-2">
-                                                {(task.tags ?? []).map((tag) => (
-                                                    <Badge key={tag}>{tag}</Badge>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                    <CardAction className="w-full">
-                                        <div className="flex gap-2 justify-end">
-                                            {
-                                                task.status !== TaskStatus.COMPLETED && (
-                                                    <Button disabled={isPlaying && taskStopWatch.id !== task.id} onClick={async () => {
-                                                        if (taskStopWatch.id === task.id) {
-                                                            await pause(task.id);
-                                                        } else {
-                                                            await start(task.id);
-                                                        }
-                                                    }} variant={taskStopWatch.id === task.id ? "outline" : "default"}>{taskStopWatch.id === task.id ? <Pause /> : <Play />}</Button>
-                                                )
-                                            }
-                                            <Button disabled={isPlaying && taskStopWatch.id === task.id} variant="outline" onClick={() => openEditDialog(task.id)}><Pencil />Editar</Button>
-                                            <Button disabled={isPlaying && taskStopWatch.id === task.id} variant="destructive" onClick={() => handleDeleteTask(task.id)}><Minus />Eliminar</Button>
-                                        </div>
-                                    </CardAction>
-                                </Card>
-                            </HoverCardTrigger>
-                            <HoverCardContent>
+                        <Card key={task.id} className={`p-4 w-70 sm:w-full ${task.status === TaskStatus.IN_PROGRESS ? "bg-gray-400" : ""}`}>
+                            <CardHeader>
+                                <CardTitle>
+                                    <div className="flex justify-between items-center">
+                                        <h1 className="text-lg font-bold">{task.name}</h1>
+                                        <Popover key={task.id}>
+                                            <PopoverTrigger asChild>
+                                                <Button variant="outline"><Ellipsis /></Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent>
+                                                <div className="flex flex-col gap-2">
+                                                    <p className="text-sm"><span className="font-bold font-size-xs">Descripción:</span></p>
+                                                    <p>{task.description}</p>
+                                                    <p className="text-sm"><span className="font-bold font-size-xs">Tarea en días:</span> <Badge>{(task.elapsedTimeInMilliseconds / ((task.dailyTime ?? 1) * oneHourInMilliseconds)).toFixed(2)}</Badge></p>
+                                                    <p className="text-sm"><span className="font-bold font-size-xs">Creación:</span> {task.createdAt}</p>
+                                                    <p className="text-sm"><span className="font-bold font-size-xs">Actualización:</span> {task.updatedAt}</p>
+                                                </div>
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
+                                    <Separator className="my-4" />
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
                                 <div className="flex flex-col gap-2">
-                                    <p className="text-sm"><span className="font-bold font-size-xs">Descripción:</span></p>
-                                    <p>{task.description}</p>
-                                    <p className="text-sm"><span className="font-bold font-size-xs">Tarea en días:</span> <Badge>{(task.elapsedTimeInMilliseconds / ((task.dailyTime ?? 1) * oneHourInMilliseconds)).toFixed(2)}</Badge></p>
-                                    <p className="text-sm"><span className="font-bold font-size-xs">Creación:</span> {task.createdAt}</p>
-                                    <p className="text-sm"><span className="font-bold font-size-xs">Actualización:</span> {task.updatedAt}</p>
+                                    <p className="text-sm"><span className="font-bold font-size-xs">Horas diarias:</span> <Badge>{task.dailyTime ?? "0"}</Badge></p>
+                                    <p className="text-sm"><span className="font-bold font-size-xs">Tiempo:</span> <Badge>{taskStopWatch.id === task.id ? taskStopWatch.clockTime : task.elapsedTime || '00:00:00'}</Badge></p>
+                                    <p className="text-sm"><span className="font-bold font-size-xs">Status:</span> <Badge variant="secondary">{task.status === TaskStatus.IN_PROGRESS ? "En progreso" : task.status === TaskStatus.PAUSED ? "Pausada" : task.status === TaskStatus.COMPLETED ? "Completada" : "Pendiente"}</Badge></p>
+                                    <div className="mt-2 flex gap-2">
+                                        {(task.tags ?? []).map((tag) => (
+                                            <Badge key={tag}>{tag}</Badge>
+                                        ))}
+                                    </div>
                                 </div>
-                            </HoverCardContent>
-                        </HoverCard>
+                            </CardContent>
+                            <CardAction className="w-full">
+                                <div className="flex gap-2 justify-end">
+                                    {
+                                        task.status !== TaskStatus.COMPLETED && (
+                                            <Button disabled={isPlaying && taskStopWatch.id !== task.id} onClick={async () => {
+                                                if (taskStopWatch.id === task.id) {
+                                                    await pause(task.id);
+                                                } else {
+                                                    await start(task.id);
+                                                }
+                                            }} variant={taskStopWatch.id === task.id ? "outline" : "default"}>{taskStopWatch.id === task.id ? <Pause /> : <Play />}</Button>
+                                        )
+                                    }
+                                    <Button disabled={isPlaying && taskStopWatch.id === task.id} variant="outline" onClick={() => openEditDialog(task.id)}><Pencil />Editar</Button>
+                                    <Button disabled={isPlaying && taskStopWatch.id === task.id} variant="destructive" onClick={() => handleDeleteTask(task.id)}><Minus />Eliminar</Button>
+                                </div>
+                            </CardAction>
+                        </Card>
                     ))
                 }
             </div>
