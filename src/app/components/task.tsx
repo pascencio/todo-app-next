@@ -48,7 +48,7 @@ import { sendNotification } from "@/app/lib/util/notification";
 import { TagsInput } from "@/app/components/tags-input";
 import { Slider } from "@/components/ui/slider";
 
-const oneHourInMilliseconds = 1000*60*60;
+const oneHourInMilliseconds = 1000 * 60 * 60;
 
 function useTasksUseCase() {
     return DiContainer.getInstance().get(GetTasksUserCase)
@@ -406,18 +406,21 @@ export default function Task() {
                             <HoverCardTrigger asChild>
                                 <Card key={task.id} className={`p-4 w-70 sm:w-full ${task.status === TaskStatus.IN_PROGRESS ? "bg-gray-400" : ""}`}>
                                     <CardHeader>
-                                        <CardTitle><h1 className="text-lg font-bold">{task.name}</h1></CardTitle>
+                                        <CardTitle>
+                                            <h1 className="text-lg font-bold">{task.name}</h1>
+                                            <Separator className="my-4" />
+                                        </CardTitle>
                                     </CardHeader>
                                     <CardContent>
                                         <div className="flex flex-col gap-2">
-                                        <p className="text-sm"><span className="font-bold font-size-xs">Horas diarias:</span> <Badge>{task.dailyTime ?? "0"}</Badge></p>
-                                        <p className="text-sm"><span className="font-bold font-size-xs">Tiempo:</span> <Badge>{taskStopWatch.id === task.id ? taskStopWatch.clockTime : task.elapsedTime || '00:00:00'}</Badge></p>
-                                        <p className="text-sm"><span className="font-bold font-size-xs">Status:</span> <Badge variant="secondary">{task.status === TaskStatus.IN_PROGRESS ? "En progreso" : task.status === TaskStatus.PAUSED ? "Pausada" : task.status === TaskStatus.COMPLETED ? "Completada" : "Pendiente"}</Badge></p>
-                                        <div className="mt-2 flex gap-2">
-                                            {(task.tags ?? []).map((tag) => (
-                                                <Badge key={tag}>{tag}</Badge>
-                                            ))}
-                                        </div>
+                                            <p className="text-sm"><span className="font-bold font-size-xs">Horas diarias:</span> <Badge>{task.dailyTime ?? "0"}</Badge></p>
+                                            <p className="text-sm"><span className="font-bold font-size-xs">Tiempo:</span> <Badge>{taskStopWatch.id === task.id ? taskStopWatch.clockTime : task.elapsedTime || '00:00:00'}</Badge></p>
+                                            <p className="text-sm"><span className="font-bold font-size-xs">Status:</span> <Badge variant="secondary">{task.status === TaskStatus.IN_PROGRESS ? "En progreso" : task.status === TaskStatus.PAUSED ? "Pausada" : task.status === TaskStatus.COMPLETED ? "Completada" : "Pendiente"}</Badge></p>
+                                            <div className="mt-2 flex gap-2">
+                                                {(task.tags ?? []).map((tag) => (
+                                                    <Badge key={tag}>{tag}</Badge>
+                                                ))}
+                                            </div>
                                         </div>
                                     </CardContent>
                                     <CardAction className="w-full">
@@ -441,11 +444,11 @@ export default function Task() {
                             </HoverCardTrigger>
                             <HoverCardContent>
                                 <div className="flex flex-col gap-2">
-                                <p className="text-sm"><span className="font-bold font-size-xs">Descripción:</span></p>
-                                <p>{task.description}</p>
-                                <p className="text-sm"><span className="font-bold font-size-xs">Tarea en días:</span> <Badge>{ (task.elapsedTimeInMilliseconds/((task.dailyTime??1)*oneHourInMilliseconds)).toFixed(2)}</Badge></p>
-                                <p className="text-sm"><span className="font-bold font-size-xs">Creación:</span> {task.createdAt}</p>
-                                <p className="text-sm"><span className="font-bold font-size-xs">Actualización:</span> {task.updatedAt}</p>
+                                    <p className="text-sm"><span className="font-bold font-size-xs">Descripción:</span></p>
+                                    <p>{task.description}</p>
+                                    <p className="text-sm"><span className="font-bold font-size-xs">Tarea en días:</span> <Badge>{(task.elapsedTimeInMilliseconds / ((task.dailyTime ?? 1) * oneHourInMilliseconds)).toFixed(2)}</Badge></p>
+                                    <p className="text-sm"><span className="font-bold font-size-xs">Creación:</span> {task.createdAt}</p>
+                                    <p className="text-sm"><span className="font-bold font-size-xs">Actualización:</span> {task.updatedAt}</p>
                                 </div>
                             </HoverCardContent>
                         </HoverCard>
