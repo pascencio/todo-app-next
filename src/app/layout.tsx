@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
+import Header from "./components/header";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,6 +36,7 @@ export default function RootLayout({
         enableSystem
         disableTransitionOnChange
       ><div className="font-sans grid grid-rows-[20px_1fr_20px] p-8">
+            <Header />
             <main className="flex flex-col gap-[32px] row-start-2">
               {children}
             </main>

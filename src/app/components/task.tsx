@@ -402,7 +402,7 @@ export default function Task() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-4 max-w-7xl mx-auto place-items-center sm:place-items-stretch">
                 {
                     tasks.map((task) => (
-                        <Card key={task.id} className={`p-4 w-70 sm:w-full ${task.status === TaskStatus.IN_PROGRESS ? "bg-gray-400" : ""}`}>
+                        <Card key={task.id} className={`p-4 w-70 sm:w-full ${task.status === TaskStatus.IN_PROGRESS ? "bg-task-in-progress text-task-in-progress-foreground" : ""}`}>
                             <CardHeader>
                                 <CardTitle>
                                     <div className="flex justify-between items-center">
