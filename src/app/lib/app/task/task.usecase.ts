@@ -82,7 +82,7 @@ export class GetTasksUserCase {
         
         return {
             tasks: tasks
-                .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) // Order by createdAt ASC
+                .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()) // Order by createdAt ASC
                 .map((task) => ({
                     id: task.id,
                     name: task.name,
