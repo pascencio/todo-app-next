@@ -81,6 +81,7 @@ function createContainer(): void {
                             updatedAt: new Date(),
                             elapsedTime: 0,
                             startedAt: 0,
+                            dailyTime: 0,
                             tags: []
                         }
                     }
