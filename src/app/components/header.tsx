@@ -2,7 +2,7 @@
 
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button"
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, ListCheck, ListCheckIcon } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 
@@ -10,7 +10,7 @@ export default function Header() {
     const { setTheme } = useTheme()
     return (
         <header className="flex justify-between items-center p-4">
-            <h1>Todo App</h1>
+            <h1 className="text-3xl font-bold flex items-center gap-2"><ListCheckIcon /> Todo App</h1>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="icon">

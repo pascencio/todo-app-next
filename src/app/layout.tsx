@@ -35,7 +35,7 @@ export default function RootLayout({
         defaultTheme="system"
         enableSystem
         disableTransitionOnChange
-      ><div className="font-sans grid grid-rows-[20px_1fr_20px] p-8">
+      ><div className="font-sans grid grid-rows-[20px_1fr_20px] gap-10 p-8">
             <Header />
             <main className="flex flex-col gap-[32px] row-start-2">
               {children}
