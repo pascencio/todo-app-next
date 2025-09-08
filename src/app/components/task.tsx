@@ -33,6 +33,17 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { z } from "zod"
 import { Input } from "@/components/ui/input"
 
@@ -42,7 +53,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { formatTime, Stopwatch } from "@/app/lib/util/stopwatch";
+import { Stopwatch } from "@/app/lib/util/stopwatch";
 import { Badge } from "@/components/ui/badge"
 import { sendNotification } from "@/app/lib/util/notification";
 import { TagsInput } from "@/app/components/tags-input";
@@ -96,12 +107,14 @@ export default function Task() {
     const [dialogDescription, setDialogDescription] = useState<string>("");
     const [timeInterval, setTimeInterval] = useState<NodeJS.Timeout | null>(null);
     const [isPlaying, setIsPlaying] = useState<boolean>(false);
+    const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
     const [stopwatch] = useState<Stopwatch>(() => new Stopwatch());
     const [taskStopWatch, setTaskStopWatch] = useState<TaskStopWatch>({
         id: "",
         clockTime: "00:00:00",
         elapsedTime: 0,
     });
+    const [taskToDelete, setTaskToDelete] = useState<TaskType | null>(null);
 
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
@@ -310,6 +323,20 @@ export default function Task() {
             <h1 className="text-2xl font-bold">Lista de Tareas</h1>
             <Separator className="my-4" />
             <div className="flex justify-end mb-4">
+                <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>¿Estás seguro de querer eliminar la tarea?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Esta acción no puede ser deshecha. Se eliminará la tarea: <strong>{taskToDelete?.name ?? ""}</strong>.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteTask(taskToDelete?.id ?? "")}>Eliminar</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
                 <Dialog open={isOpen} onOpenChange={onOpenChange}>
                     <DialogTrigger asChild>
                         <div>
@@ -451,7 +478,10 @@ export default function Task() {
                                         )
                                     }
                                     <Button disabled={isPlaying && taskStopWatch.id === task.id} variant="outline" onClick={() => openEditDialog(task.id)}><Pencil />Editar</Button>
-                                    <Button disabled={isPlaying && taskStopWatch.id === task.id} variant="destructive" onClick={() => handleDeleteTask(task.id)}><Minus />Eliminar</Button>
+                                    <Button disabled={isPlaying && taskStopWatch.id === task.id} variant="destructive" onClick={() => {
+                                        setIsAlertOpen(true);
+                                        setTaskToDelete(task);
+                                    }}><Minus />Eliminar</Button>
                                 </div>
                             </CardAction>
                         </Card>
