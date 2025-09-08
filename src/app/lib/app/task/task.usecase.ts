@@ -157,7 +157,7 @@ export class UpdateTaskUserCase {
             description: taskEntity.description,
             createdAt: dayjs(taskEntity.createdAt).format('DD/MM/YYYY HH:mm'),
             updatedAt: dayjs(taskEntity.updatedAt).fromNow(),
-            elapsedTime: taskEntity.elapsedTime ? dayjs.duration(taskEntity.elapsedTime).format('HH:mm:ss') : '00:00:00',
+            elapsedTime: formatTime(taskEntity.elapsedTime),
             elapsedTimeInMilliseconds: taskEntity.elapsedTime ? taskEntity.elapsedTime : 0,
             startedTimeInMilliseconds: taskEntity.startedAt,
             status: taskEntity.status,
