@@ -82,7 +82,8 @@ function createContainer(): void {
                             elapsedTime: 0,
                             startedAt: 0,
                             dailyTime: 0,
-                            tags: []
+                            tags: [],
+                            dailyTasks: []
                         }
                     }
                 } satisfies TaskOutput;
