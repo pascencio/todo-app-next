@@ -1,7 +1,7 @@
 "use client";
 
 import { AddTaskUserCase, DeleteTaskUserCase, GetTasksUserCase, UpdateTaskUserCase, Task as TaskType } from "@/app/lib/app/task/task.usecase";
-import { TaskStatus } from "@/app/lib/app/task/task.entity";
+import { DailyTask, TaskStatus } from "@/app/lib/app/task/task.entity";
 import { DiContainer } from "@/app/lib/di/di";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,17 +47,19 @@ import {
 import { z } from "zod"
 import { Input } from "@/components/ui/input"
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Ellipsis, Minus, Pause, Pencil, Play, Plus } from "lucide-react"
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Stopwatch } from "@/app/lib/util/stopwatch";
+import { formatTime, Stopwatch } from "@/app/lib/util/stopwatch";
 import { Badge } from "@/components/ui/badge"
 import { sendNotification } from "@/app/lib/util/notification";
 import { TagsInput } from "@/app/components/tags-input";
 import { Slider } from "@/components/ui/slider";
+import dayjs from "dayjs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const oneHourInMilliseconds = 1000 * 60 * 60;
 
@@ -139,10 +141,25 @@ export default function Task() {
         }
         let accumulatedTime = task.elapsedTimeInMilliseconds;
         let startedTime = task.startedTimeInMilliseconds;
-        const now = Date.now();
-        if (task.status === TaskStatus.IN_PROGRESS) {
-            accumulatedTime += now - task.startedTimeInMilliseconds; // TODO: Esta lógica debería estar en la clase de dominio
+        const now = dayjs(new Date());
+        const updatedAt = dayjs(task.updatedAtDate);
+        console.log(`accumulatedTime: ${accumulatedTime} + ${now.toDate().getTime()} - ${task.startedTimeInMilliseconds}`);
+        if (task.status === TaskStatus.IN_PROGRESS && startedTime > 0) {
+            accumulatedTime += now.toDate().getTime() - task.startedTimeInMilliseconds; // TODO: Esta lógica debería estar en la clase de dominio
             startedTime = task.startedTimeInMilliseconds;
+        }
+        console.log(now.isAfter(updatedAt, 'day'));
+        console.log("now", now);
+        console.log("updatedAt", updatedAt);
+        if (now.isAfter(updatedAt, 'day')) {
+            const elapsedTime = accumulatedTime - startedTime;
+            const daylyTask = {
+                taskDate: updatedAt.startOf('day').toDate(),
+                elapsedTime: elapsedTime,
+            };
+            task.dailyTasks.push(daylyTask);
+            accumulatedTime = 0;
+            startedTime = 0;
         }
         stopwatch.setInitialTime(startedTime, accumulatedTime);
         sendNotification("Tiempo iniciado", `Tarea ${task.name} ha sido iniciada!`);
@@ -154,7 +171,8 @@ export default function Task() {
             description: task.description,
             status: TaskStatus.IN_PROGRESS,
             tags: task.tags,
-            dailyTime: task.dailyTime
+            dailyTime: task.dailyTime,
+            dailyTasks: task.dailyTasks
         });
         setTasks(tasksToUse.map((task) => task.id === id ? updatedTask as unknown as TaskType : task));
         setTaskStopWatch({
@@ -202,7 +220,8 @@ export default function Task() {
             description: task.description,
             status: TaskStatus.PAUSED,
             tags: task.tags,
-            dailyTime: task.dailyTime
+            dailyTime: task.dailyTime,
+            dailyTasks: task.dailyTasks
         });
         setTasks(tasks.map((task) => task.id === id ? updatedTask as unknown as TaskType : task));
     }
@@ -244,7 +263,8 @@ export default function Task() {
             elapsedTime: task.elapsedTimeInMilliseconds,
             status: task.status as TaskStatus,
             tags: data.tags,
-            dailyTime: data.dailyTime[0]
+            dailyTime: data.dailyTime[0],
+            dailyTasks: task.dailyTasks
         });
         setTasks(tasks.map((task) => task.id === id ? { ...task, name: data.title, description: data.description, tags: data.tags, dailyTime: data.dailyTime[0] } : task));
     }
@@ -445,6 +465,18 @@ export default function Task() {
                                                     <p className="text-sm"><span className="font-bold font-size-xs">Tarea en días:</span> <Badge>{(task.elapsedTimeInMilliseconds / ((task.dailyTime ?? 1) * oneHourInMilliseconds)).toFixed(2)}</Badge></p>
                                                     <p className="text-sm"><span className="font-bold font-size-xs">Creación:</span> {task.createdAt}</p>
                                                     <p className="text-sm"><span className="font-bold font-size-xs">Actualización:</span> {task.updatedAt}</p>
+                                                    <div>
+                                                        <h1 className="text-sm"><span className="font-bold font-size-xs">Tareas en diarias:</span></h1>
+                                                        <Separator className="my-2" />
+                                                        <ScrollArea className="h-40 w-full">
+                                                            {task.dailyTasks.map((dailyTask) => (
+                                                                <React.Fragment key={dailyTask.taskDate.valueOf()}>
+                                                                    <p className="text-sm">Fecha: {dayjs(dailyTask.taskDate).format('DD/MM/YYYY')}: <Badge>{formatTime(dailyTask.elapsedTime)}</Badge></p>
+                                                                    <Separator className="my-2" />
+                                                                </React.Fragment>
+                                                            ))}
+                                                        </ScrollArea>
+                                                    </div>
                                                 </div>
                                             </PopoverContent>
                                         </Popover>

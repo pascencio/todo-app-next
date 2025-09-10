@@ -6,6 +6,11 @@ export enum TaskStatus {
     PAUSED = "Pausada",
 }
 
+export interface DailyTask {
+    taskDate: Date;
+    elapsedTime: number;
+}
+
 export interface TaskEntity {
     id: string;
     name: string;
@@ -17,4 +22,5 @@ export interface TaskEntity {
     dailyTime: number;
     status: TaskStatus;
     tags: string[];
+    dailyTasks: DailyTask[];
 }
