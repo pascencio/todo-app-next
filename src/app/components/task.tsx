@@ -462,7 +462,6 @@ export default function Task() {
                                                 <div className="flex flex-col gap-2">
                                                     <p className="text-sm"><span className="font-bold font-size-xs">Descripción:</span></p>
                                                     <p>{task.description}</p>
-                                                    <p className="text-sm"><span className="font-bold font-size-xs">Tarea en días:</span> <Badge>{(task.elapsedTimeInMilliseconds / ((task.dailyTime ?? 1) * oneHourInMilliseconds)).toFixed(2)}</Badge></p>
                                                     <p className="text-sm"><span className="font-bold font-size-xs">Creación:</span> {task.createdAt}</p>
                                                     <p className="text-sm"><span className="font-bold font-size-xs">Actualización:</span> {task.updatedAt}</p>
                                                     <div>
