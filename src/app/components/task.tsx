@@ -1,7 +1,7 @@
 "use client";
 
 import { AddTaskUserCase, DeleteTaskUserCase, GetTasksUserCase, UpdateTaskUserCase, Task as TaskType } from "@/app/lib/app/task/task.usecase";
-import { DailyTask, TaskStatus } from "@/app/lib/app/task/task.entity";
+import { TaskStatus } from "@/app/lib/app/task/task.entity";
 import { DiContainer } from "@/app/lib/di/di";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,7 +42,6 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-    AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { z } from "zod"
 import { Input } from "@/components/ui/input"
@@ -60,8 +59,6 @@ import { TagsInput } from "@/app/components/tags-input";
 import { Slider } from "@/components/ui/slider";
 import dayjs from "dayjs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-const oneHourInMilliseconds = 1000 * 60 * 60;
 
 function useTasksUseCase() {
     return DiContainer.getInstance().get(GetTasksUserCase)
@@ -208,8 +205,8 @@ export default function Task() {
             clearInterval(timeInterval);
             setTimeInterval(null);
         }
-        let accumulatedTime = task.elapsedTimeInMilliseconds;
-        let startedTime = task.startedTimeInMilliseconds;
+        const accumulatedTime = task.elapsedTimeInMilliseconds;
+        const startedTime = task.startedTimeInMilliseconds;
         const now = dayjs(new Date());
         const updatedAt = dayjs(task.updatedAtDate);
         if (now.isAfter(updatedAt, 'day')) {
