@@ -143,14 +143,10 @@ export default function Task() {
         let startedTime = task.startedTimeInMilliseconds;
         const now = dayjs(new Date());
         const updatedAt = dayjs(task.updatedAtDate);
-        console.log(`accumulatedTime: ${accumulatedTime} + ${now.toDate().getTime()} - ${task.startedTimeInMilliseconds}`);
         if (task.status === TaskStatus.IN_PROGRESS && startedTime > 0) {
             accumulatedTime += now.toDate().getTime() - task.startedTimeInMilliseconds; // TODO: Esta lógica debería estar en la clase de dominio
             startedTime = task.startedTimeInMilliseconds;
         }
-        console.log(now.isAfter(updatedAt, 'day'));
-        console.log("now", now);
-        console.log("updatedAt", updatedAt);
         if (now.isAfter(updatedAt, 'day')) {
             const elapsedTime = accumulatedTime - startedTime;
             const daylyTask = {
@@ -211,6 +207,19 @@ export default function Task() {
         if (timeInterval) {
             clearInterval(timeInterval);
             setTimeInterval(null);
+        }
+        let accumulatedTime = task.elapsedTimeInMilliseconds;
+        let startedTime = task.startedTimeInMilliseconds;
+        const now = dayjs(new Date());
+        const updatedAt = dayjs(task.updatedAtDate);
+        if (now.isAfter(updatedAt, 'day')) {
+            const elapsedTime = accumulatedTime - startedTime;
+            const daylyTask = {
+                taskDate: updatedAt.startOf('day').toDate(),
+                elapsedTime: elapsedTime,
+            };
+            task.dailyTasks.push(daylyTask);
+            stopwatch.reset();
         }
 
         const updatedTask = await updateTaskUseCase.execute({
@@ -314,7 +323,6 @@ export default function Task() {
 
     async function onSubmit(data: z.infer<typeof FormSchema>) {
         try {
-            console.log(data);
             if (isEditOpen) {
                 await handleUpdateTask(editTaskId, data);
             } else {
