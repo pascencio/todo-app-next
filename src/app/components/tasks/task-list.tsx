@@ -26,7 +26,7 @@ export default function TaskList({
     onComplete
 }: TaskListProps) {
     return (
-        <ScrollArea className="h-[calc(100vh-200px)] w-full scroll-area-inset-shadow">
+        <ScrollArea className="h-[calc(100svh-250px)] w-full scroll-area-inset-shadow">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-4 max-w-7xl mx-auto place-items-center sm:place-items-stretch">
                 {
                     tasks.map((task) => (

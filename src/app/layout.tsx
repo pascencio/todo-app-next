@@ -52,7 +52,7 @@ export default function RootLayout({
         enableSystem
         disableTransitionOnChange
       >
-          <div className="font-sans grid grid-rows-[20px_1fr_20px] gap-10">
+          <div className="font-sans">
             <Header />
             <main className="flex flex-col gap-[32px] row-start-2">
               {children}
