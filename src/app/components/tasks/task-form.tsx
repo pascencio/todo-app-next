@@ -45,16 +45,22 @@ const FormSchema = z.object({
 })
 
 interface TaskFormProps {
-    task: TaskType | null;
-    onAddTask: (data: z.infer<typeof FormSchema>) => Promise<void>;
-    onUpdateTask: (id: string, data: z.infer<typeof FormSchema>) => Promise<void>;
+    onAddTask: (data: TaskFormData) => Promise<void>;
+    onUpdateTask: (id: string, data: TaskFormData) => Promise<void>;
 }
 
 interface TaskFormRef {
     openEditDialog: (task: TaskType) => void;
 }
 
-const TaskForm = React.forwardRef<TaskFormRef, TaskFormProps>(({ task, onAddTask, onUpdateTask }, ref) => {
+export interface TaskFormData {
+    title: string;
+    description: string;
+    tags: string[];
+    dailyTime: number;
+}
+
+const TaskForm = React.forwardRef<TaskFormRef, TaskFormProps>(({ onAddTask, onUpdateTask }, ref) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [editTaskId, setEditTaskId] = useState<string>("");
@@ -72,7 +78,12 @@ const TaskForm = React.forwardRef<TaskFormRef, TaskFormProps>(({ task, onAddTask
     })
 
     const handleUpdateTask = async (id: string, data: z.infer<typeof FormSchema>) => {
-        await onUpdateTask(id, data);
+        await onUpdateTask(id, {
+            title: data.title,
+            description: data.description,
+            tags: data.tags,
+            dailyTime: data.dailyTime[0],
+        });
     }
 
     const onOpenChange = (status: boolean) => {
@@ -94,7 +105,7 @@ const TaskForm = React.forwardRef<TaskFormRef, TaskFormProps>(({ task, onAddTask
         }
     }
 
-    const openEditDialog = (task: TaskType) => {
+    const openEditDialog = useCallback((task: TaskType) => {
         if (!task) {
             console.error("Task not found");
             return;
@@ -108,7 +119,7 @@ const TaskForm = React.forwardRef<TaskFormRef, TaskFormProps>(({ task, onAddTask
         setDialogDescription("Edita la tarea seleccionada.");
         setIsEditOpen(true);
         setIsOpen(true);
-    }
+    }, [form]);
 
     const openAddDialog = () => {
         setIsOpen(true);
@@ -121,7 +132,12 @@ const TaskForm = React.forwardRef<TaskFormRef, TaskFormProps>(({ task, onAddTask
             if (isEditOpen) {
                 await handleUpdateTask(editTaskId, data);
             } else {
-                await onAddTask(data);
+                await onAddTask({
+                    title: data.title,
+                    description: data.description,
+                    tags: data.tags,
+                    dailyTime: data.dailyTime[0],
+                });
             }
             setIsOpen(false);
             setIsEditOpen(false);

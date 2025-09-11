@@ -8,7 +8,7 @@ import { Stopwatch } from "@/app/lib/util/stopwatch";
 import { sendNotification } from "@/app/lib/util/notification";
 import dayjs from "dayjs";
 import React, { useEffect, useState, useRef } from "react";
-import TaskForm, { TaskFormRef } from "./task-form";
+import TaskForm, { TaskFormData, TaskFormRef } from "./task-form";
 import TaskList from "./task-list";
 
 function useTasksUseCase() {
@@ -189,27 +189,31 @@ export default function Task() {
         setTasks(tasks.filter((task) => task.id !== id));
     }
 
-    const handleAddTask = async (data: any) => {
+    const handleAddTask = async (data: TaskFormData) => {
         const addTaskOutput = await addTaskUseCase.execute({
             name: data.title,
             description: data.description,
             tags: data.tags,
-            dailyTime: data.dailyTime[0]
+            dailyTime:  data.dailyTime
         });
         setTasks([...tasks, addTaskOutput as TaskType]);
         setTask(null);
     }
 
-    const handleUpdateTask = async (id: string, data: any) => {
+    const handleUpdateTask = async (id: string, data: TaskFormData) => {
+        if (!task) {
+            console.error("Task not found");
+            return;
+        }
         const updateTaskOutput = await updateTaskUseCase.execute({ 
             id,
             name: data.title,
             description: data.description,
-            status: data.status,
+            status: task.status,
             elapsedTime: 0,
-            dailyTime: data.dailyTime[0],
+            dailyTime: data.dailyTime,
             tags: data.tags,
-            dailyTasks: task?.dailyTasks ?? []
+            dailyTasks: task.dailyTasks
          });
         setTasks(tasks.map((task) => task.id === id ? updateTaskOutput as TaskType : task));
         setTask(null);
@@ -222,7 +226,6 @@ export default function Task() {
             <div className="flex justify-end mb-4">
                 <TaskForm
                     ref={taskFormRef}
-                    task={task}
                     onAddTask={handleAddTask}
                     onUpdateTask={handleUpdateTask}
                 />

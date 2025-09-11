@@ -1,8 +1,7 @@
 "use client";
 
-import { DeleteTaskUserCase, Task as TaskType } from "@/app/lib/app/task/task.usecase";
+import { Task as TaskType } from "@/app/lib/app/task/task.usecase";
 import { TaskStatus } from "@/app/lib/app/task/task.entity";
-import { DiContainer } from "@/app/lib/di/di";
 import { Button } from "@/components/ui/button";
 import {
     Card,
@@ -34,10 +33,6 @@ import { formatTime } from "@/app/lib/util/stopwatch";
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area";
 import dayjs from "dayjs";
-
-function useDeleteTaskUseCase() {
-    return DiContainer.getInstance().get(DeleteTaskUserCase)
-}
 
 interface TaskStopWatch {
     id: string;
