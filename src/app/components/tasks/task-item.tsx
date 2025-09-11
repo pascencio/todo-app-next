@@ -144,7 +144,7 @@ export default function TaskItem({
                                     }
                                 }} variant={taskStopWatch.id === task.id ? "outline" : "default"}>{taskStopWatch.id === task.id ? <Pause /> : <Play />}</Button>
                         <Button
-                                    disabled={task.status === TaskStatus.COMPLETED}
+                                    disabled={task.status === TaskStatus.COMPLETED || task.elapsedTimeInMilliseconds === 0}
                                     className="btn-task-success"
                                     onClick={() => onComplete?.(task.id)}
                                 >

@@ -102,6 +102,7 @@ export default function Task() {
                     clockTime: stopwatch.getClockTime(),
                     elapsedTime: stopwatch.getElapsedTimeInMilliseconds(),
                 });
+                task.elapsedTimeInMilliseconds = stopwatch.getElapsedTimeInMilliseconds();
             }, 1000);
             setTimeInterval(interval);
         }
