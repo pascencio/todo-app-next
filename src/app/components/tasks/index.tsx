@@ -226,7 +226,7 @@ export default function Task() {
             return;
         }
         taskItem.dailyTasks.push({
-            taskDate: dayjs().startOf('day').toDate(),
+            taskDate: dayjs().toDate(),
             elapsedTime: taskItem.elapsedTimeInMilliseconds
         });
         setTaskStopWatch({

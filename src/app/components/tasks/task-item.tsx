@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/alert-dialog"
 
 import React, { useState } from "react";
-import { Ellipsis, Minus, Pause, Pencil, Play, Check } from "lucide-react"
+import { Ellipsis, Minus, Pause, Pencil, Play, Check, CalendarIcon } from "lucide-react"
 import { Separator } from "@/components/ui/separator";
 import { formatTime } from "@/app/lib/util/stopwatch";
 import { Badge } from "@/components/ui/badge"
@@ -107,7 +107,9 @@ export default function TaskItem({
                                             <ScrollArea className="h-40 w-full">
                                                 {task.dailyTasks !== undefined && task.dailyTasks.map((dailyTask) => (
                                                     <React.Fragment key={dailyTask.taskDate.valueOf()}>
-                                                        <p className="text-sm">Fecha: {dayjs(dailyTask.taskDate).format('DD/MM/YYYY')}: <Badge>{formatTime(dailyTask.elapsedTime)}</Badge></p>
+                                                        <p className="text-sm flex items-center gap-2">
+                                                            <CalendarIcon /> {dayjs(dailyTask.taskDate).format('DD/MM/YYYY HH:mm')} <Badge>{formatTime(dailyTask.elapsedTime)}</Badge>
+                                                        </p>
                                                         <Separator className="my-2" />
                                                     </React.Fragment>
                                                 ))}
