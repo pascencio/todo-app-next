@@ -194,7 +194,7 @@ export default function Task() {
             name: data.title,
             description: data.description,
             tags: data.tags,
-            dailyTime:  data.dailyTime
+            dailyTime: data.dailyTime
         });
         setTasks([...tasks, addTaskOutput as TaskType]);
         setTask(null);
@@ -205,7 +205,7 @@ export default function Task() {
             console.error("Task not found");
             return;
         }
-        const updateTaskOutput = await updateTaskUseCase.execute({ 
+        const updateTaskOutput = await updateTaskUseCase.execute({
             id,
             name: data.title,
             description: data.description,
@@ -214,9 +214,43 @@ export default function Task() {
             dailyTime: data.dailyTime,
             tags: data.tags,
             dailyTasks: task.dailyTasks
-         });
+        });
         setTasks(tasks.map((task) => task.id === id ? updateTaskOutput as TaskType : task));
         setTask(null);
+    }
+
+    const handleCompleteTask = async (id: string) => {
+        const taskItem = tasks.find((task) => task.id === id);
+        if (!taskItem) {
+            console.error("Task not found");
+            return;
+        }
+        taskItem.dailyTasks.push({
+            taskDate: dayjs().startOf('day').toDate(),
+            elapsedTime: taskItem.elapsedTimeInMilliseconds
+        });
+        setTaskStopWatch({
+            id: "",
+            clockTime: "00:00:00",
+            elapsedTime: 0,
+        });
+        setIsPlaying(false);
+        if (timeInterval) {
+            clearInterval(timeInterval);
+            setTimeInterval(null);
+        }
+        const updateTaskOutput = await updateTaskUseCase.execute({
+            id,
+            name: taskItem.name,
+            description: taskItem.description,
+            status: TaskStatus.COMPLETED,
+            elapsedTime: 0,
+            dailyTime: taskItem.dailyTime,
+            tags: taskItem.tags,
+            dailyTasks: taskItem.dailyTasks
+        });
+        console.log("updateTaskOutput", updateTaskOutput);
+        setTasks(tasks.map((task) => task.id === id ? updateTaskOutput as unknown as TaskType : task));
     }
 
     return (
@@ -238,6 +272,7 @@ export default function Task() {
                 onPause={pause}
                 onEdit={handleEdit}
                 onDelete={handleDeleteTask}
+                onComplete={handleCompleteTask}
             />
         </div>
     );

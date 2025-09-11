@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/alert-dialog"
 
 import React, { useState } from "react";
-import { Ellipsis, Minus, Pause, Pencil, Play } from "lucide-react"
+import { Ellipsis, Minus, Pause, Pencil, Play, Check } from "lucide-react"
 import { Separator } from "@/components/ui/separator";
 import { formatTime } from "@/app/lib/util/stopwatch";
 import { Badge } from "@/components/ui/badge"
@@ -48,16 +48,18 @@ interface TaskItemProps {
     onPause: (id: string) => Promise<void>;
     onEdit: (id: string) => void;
     onDelete: (id: string) => void;
+    onComplete?: (id: string) => void;
 }
 
-export default function TaskItem({ 
+export default function TaskItem({
     task,
-    isPlaying, 
-    taskStopWatch, 
-    onStart, 
-    onPause, 
+    isPlaying,
+    taskStopWatch,
+    onStart,
+    onPause,
     onEdit,
-    onDelete
+    onDelete,
+    onComplete,
 }: TaskItemProps) {
     const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
 
@@ -78,7 +80,13 @@ export default function TaskItem({
                 </AlertDialogContent>
             </AlertDialog>
 
-            <Card className={`p-4 w-70 sm:w-full ${task.status === TaskStatus.IN_PROGRESS ? "bg-task-in-progress text-task-in-progress-foreground" : ""}`}>
+            <Card className={`p-4 w-70 sm:w-full ${
+                task.status === TaskStatus.IN_PROGRESS 
+                    ? "bg-task-in-progress text-task-in-progress-foreground" 
+                    : task.status === TaskStatus.COMPLETED 
+                    ? "bg-task-completed text-task-completed-foreground" 
+                    : ""
+            }`}>
                 <CardHeader>
                     <CardTitle>
                         <div className="flex justify-between items-center">
@@ -126,19 +134,22 @@ export default function TaskItem({
                 </CardContent>
                 <CardAction className="w-full">
                     <div className="flex gap-2 justify-end">
-                        {
-                            task.status !== TaskStatus.COMPLETED && (
-                                <Button disabled={isPlaying && taskStopWatch.id !== task.id} onClick={async () => {
+                    <Button disabled={isPlaying && taskStopWatch.id !== task.id} onClick={async () => {
                                     if (taskStopWatch.id === task.id) {
                                         await onPause(task.id);
                                     } else {
                                         await onStart(task.id);
                                     }
                                 }} variant={taskStopWatch.id === task.id ? "outline" : "default"}>{taskStopWatch.id === task.id ? <Pause /> : <Play />}</Button>
-                            )
-                        }
-                        <Button disabled={isPlaying && taskStopWatch.id === task.id} variant="outline" onClick={() => onEdit(task.id)}><Pencil />Editar</Button>
-                        <Button disabled={isPlaying && taskStopWatch.id === task.id} variant="destructive" onClick={() => setIsAlertOpen(true)}><Minus />Eliminar</Button>
+                        <Button
+                                    disabled={task.status === TaskStatus.COMPLETED}
+                                    className="btn-task-success"
+                                    onClick={() => onComplete?.(task.id)}
+                                >
+                                    <Check />
+                                </Button>
+                        <Button disabled={isPlaying && taskStopWatch.id === task.id} variant="outline" onClick={() => onEdit(task.id)}><Pencil /></Button>
+                        <Button disabled={isPlaying && taskStopWatch.id === task.id} variant="destructive" onClick={() => setIsAlertOpen(true)}><Minus /></Button>
                     </div>
                 </CardAction>
             </Card>

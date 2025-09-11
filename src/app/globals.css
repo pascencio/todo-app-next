@@ -18,6 +18,10 @@
   --color-sidebar: var(--sidebar);
   --color-task-in-progress: var(--task-in-progress);
   --color-task-in-progress-foreground: var(--task-in-progress-foreground);
+  --color-task-completed: var(--task-completed);
+  --color-task-completed-foreground: var(--task-completed-foreground);
+  --color-task-button-ok: var(--task-button-ok);
+  --color-task-button-ok-foreground: var(--task-button-ok-foreground);
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
@@ -80,6 +84,10 @@
   --sidebar-ring: oklch(0.708 0 0);
   --task-in-progress: oklch(0.9 0.05 220);
   --task-in-progress-foreground: oklch(0.2 0.1 220);
+  --task-completed: oklch(0.9 0.08 160);
+  --task-completed-foreground: oklch(0.2 0.1 160);
+  --task-button-ok: oklch(0.6 0.15 130);
+  --task-button-ok-foreground: oklch(1 0 0);
 }
 
 .dark {
@@ -116,6 +124,10 @@
   --sidebar-ring: oklch(0.556 0 0);
   --task-in-progress: oklch(0.3 0.1 220);
   --task-in-progress-foreground: oklch(0.9 0.05 220);
+  --task-completed: oklch(0.3 0.12 160);
+  --task-completed-foreground: oklch(0.9 0.08 160);
+  --task-button-ok: oklch(0.7 0.18 140);
+  --task-button-ok-foreground: oklch(1 0 0);
 }
 
 @layer base {
@@ -124,5 +136,17 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .btn-task-success {
+    background-color: var(--task-button-ok) !important;
+    color: var(--task-button-ok-foreground) !important;
+    border-color: var(--task-button-ok) !important;
+  }
+  .btn-task-success:hover {
+    background-color: var(--task-button-ok) !important;
+    opacity: 0.9;
   }
 }

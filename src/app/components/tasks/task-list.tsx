@@ -11,6 +11,7 @@ interface TaskListProps {
     onPause: (id: string) => Promise<void>;
     onEdit: (id: string) => void;
     onDelete: (id: string) => void;
+    onComplete: (id: string) => void;
 }
 
 export default function TaskList({ 
@@ -20,7 +21,8 @@ export default function TaskList({
     onStart, 
     onPause, 
     onEdit,
-    onDelete
+    onDelete,
+    onComplete
 }: TaskListProps) {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-4 max-w-7xl mx-auto place-items-center sm:place-items-stretch">
@@ -34,6 +36,7 @@ export default function TaskList({
                     onPause={onPause}
                     onEdit={onEdit}
                     onDelete={onDelete}
+                    onComplete={onComplete}
                 />
             ))}
         </div>
