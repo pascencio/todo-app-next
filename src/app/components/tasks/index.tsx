@@ -256,9 +256,9 @@ export default function Task() {
 
     return (
         <div>
-            <h1 className="text-2xl font-bold">Lista de Tareas</h1>
+            <h1 className="text-2xl font-bold px-8">Lista de Tareas</h1>
             <Separator className="my-4" />
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-end mb-4 px-8">
                 <TaskForm
                     ref={taskFormRef}
                     onAddTask={handleAddTask}

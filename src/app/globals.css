@@ -149,4 +149,58 @@
     background-color: var(--task-button-ok) !important;
     opacity: 0.9;
   }
+  
+  .scroll-area-inset-shadow {
+    position: relative;
+  }
+  
+  .scroll-area-inset-shadow::before,
+  .scroll-area-inset-shadow::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 20px;
+    pointer-events: none;
+    z-index: 10;
+  }
+  
+  .scroll-area-inset-shadow::before {
+    top: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.1) 0%,
+      rgba(0, 0, 0, 0.05) 50%,
+      transparent 100%
+    );
+  }
+  
+  .scroll-area-inset-shadow::after {
+    bottom: 0;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.1) 0%,
+      rgba(0, 0, 0, 0.05) 50%,
+      transparent 100%
+    );
+  }
+  
+  /* Versión para modo oscuro */
+  .dark .scroll-area-inset-shadow::before {
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      transparent 100%
+    );
+  }
+  
+  .dark .scroll-area-inset-shadow::after {
+    background: linear-gradient(
+      to top,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      transparent 100%
+    );
+  }
 }

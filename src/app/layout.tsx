@@ -41,14 +41,18 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable}`}
+        style={{
+          boxSizing: "border-box",
+        }}
         cz-shortcut-listen="true"
       ><ThemeProvider
         attribute="class"
         defaultTheme="system"
         enableSystem
         disableTransitionOnChange
-      ><div className="font-sans grid grid-rows-[20px_1fr_20px] gap-10 p-8">
+      >
+          <div className="font-sans grid grid-rows-[20px_1fr_20px] gap-10">
             <Header />
             <main className="flex flex-col gap-[32px] row-start-2">
               {children}
