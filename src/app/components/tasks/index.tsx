@@ -57,25 +57,48 @@ export default function Task() {
             console.error("Task not found");
             return;
         }
-        let accumulatedTime = task.elapsedTimeInMilliseconds;
+        let historicalTime = task.elapsedTimeInMilliseconds; // Tiempo ya acumulado en pausas anteriores
+        let currentSessionTime = 0; // Tiempo de la sesión actual
         let startedTime = task.startedTimeInMilliseconds;
         const now = dayjs(new Date());
         const updatedAt = dayjs(task.updatedAtDate);
+        
+        // Calcular tiempo de la sesión actual si está en progreso
         if (task.status === TaskStatus.IN_PROGRESS && startedTime > 0) {
-            accumulatedTime += now.toDate().getTime() - task.startedTimeInMilliseconds; // TODO: Esta lógica debería estar en la clase de dominio
-            startedTime = task.startedTimeInMilliseconds;
+            currentSessionTime = now.toDate().getTime() - task.startedTimeInMilliseconds;
         }
+        
         if (now.isAfter(updatedAt, 'day')) {
-            const elapsedTime = accumulatedTime - startedTime;
+            // Calcular cuánto tiempo se trabajó específicamente en el día anterior
+            const endOfPreviousDay = updatedAt.endOf('day').toDate().getTime();
+            let timeWorkedInPreviousDay = 0;
+            
+            if (task.startedTimeInMilliseconds > 0 && task.startedTimeInMilliseconds <= endOfPreviousDay) {
+                // La sesión actual comenzó en el día anterior
+                const sessionTimeInPreviousDay = endOfPreviousDay - task.startedTimeInMilliseconds;
+                timeWorkedInPreviousDay = historicalTime + sessionTimeInPreviousDay;
+                
+                // Actualizar para el día actual
+                currentSessionTime = currentSessionTime - sessionTimeInPreviousDay;
+                startedTime = endOfPreviousDay;
+            } else {
+                // La sesión actual comenzó hoy, todo el tiempo histórico es del día anterior
+                timeWorkedInPreviousDay = historicalTime;
+                // El tiempo de sesión actual queda intacto para el día actual
+            }
+            
             const daylyTask = {
                 taskDate: updatedAt.startOf('day').toDate(),
-                elapsedTime: elapsedTime,
+                elapsedTime: timeWorkedInPreviousDay,
             };
             task.dailyTasks.push(daylyTask);
-            accumulatedTime = 0;
-            startedTime = 0;
+            
+            // Actualizar valores para el día actual
+            historicalTime = 0; // Se reinicia porque ya se guardó en dailyTask
         }
-        stopwatch.setInitialTime(startedTime, accumulatedTime);
+        
+        const totalAccumulatedTime = historicalTime + currentSessionTime;
+        stopwatch.setInitialTime(startedTime, totalAccumulatedTime);
         sendNotification("Tiempo iniciado", `Tarea ${task.name} ha sido iniciada!`);
         stopwatch.start();
         const updatedTask = await updateTaskUseCase.execute({
@@ -127,23 +150,51 @@ export default function Task() {
             clearInterval(timeInterval);
             setTimeInterval(null);
         }
-        const accumulatedTime = task.elapsedTimeInMilliseconds;
+        let historicalTime = task.elapsedTimeInMilliseconds; // Tiempo ya acumulado en pausas anteriores
+        let currentSessionTime = 0; // Tiempo de la sesión actual
         const startedTime = task.startedTimeInMilliseconds;
         const now = dayjs(new Date());
         const updatedAt = dayjs(task.updatedAtDate);
+        
+        // Calcular tiempo de la sesión actual si está en progreso
+        if (task.status === TaskStatus.IN_PROGRESS && startedTime > 0) {
+            currentSessionTime = now.toDate().getTime() - task.startedTimeInMilliseconds;
+        }
+        
         if (now.isAfter(updatedAt, 'day')) {
-            const elapsedTime = accumulatedTime - startedTime;
+            // Calcular cuánto tiempo se trabajó específicamente en el día anterior
+            const endOfPreviousDay = updatedAt.endOf('day').toDate().getTime();
+            let timeWorkedInPreviousDay = 0;
+            
+            if (task.startedTimeInMilliseconds > 0 && task.startedTimeInMilliseconds <= endOfPreviousDay) {
+                // La sesión actual comenzó en el día anterior
+                const sessionTimeInPreviousDay = endOfPreviousDay - task.startedTimeInMilliseconds;
+                timeWorkedInPreviousDay = historicalTime + sessionTimeInPreviousDay;
+                
+                // Actualizar para el día actual
+                currentSessionTime = currentSessionTime - sessionTimeInPreviousDay;
+            } else {
+                // La sesión actual comenzó hoy, todo el tiempo histórico es del día anterior
+                timeWorkedInPreviousDay = historicalTime;
+                // El tiempo de sesión actual queda intacto para el día actual
+            }
+            
             const daylyTask = {
                 taskDate: updatedAt.startOf('day').toDate(),
-                elapsedTime: elapsedTime,
+                elapsedTime: timeWorkedInPreviousDay,
             };
             task.dailyTasks.push(daylyTask);
+            
+            // Actualizar valores para el día actual
+            historicalTime = 0; // Se reinicia porque ya se guardó en dailyTask
             stopwatch.reset();
         }
+        
+        const totalAccumulatedTime = historicalTime + currentSessionTime;
 
         const updatedTask = await updateTaskUseCase.execute({
             id,
-            elapsedTime: stopwatch.getElapsedTimeInMilliseconds(),
+            elapsedTime: totalAccumulatedTime,
             name: task.name,
             description: task.description,
             status: TaskStatus.PAUSED,
@@ -226,9 +277,51 @@ export default function Task() {
             console.error("Task not found");
             return;
         }
+        
+        // Calcular el tiempo total separando histórico de sesión actual
+        let historicalTime = taskItem.elapsedTimeInMilliseconds; // Tiempo ya acumulado en pausas anteriores
+        let currentSessionTime = 0; // Tiempo de la sesión actual
+        const startedTime = taskItem.startedTimeInMilliseconds;
+        const now = dayjs(new Date());
+        const updatedAt = dayjs(taskItem.updatedAtDate);
+        
+        // Calcular tiempo de la sesión actual si está en progreso
+        if (taskItem.status === TaskStatus.IN_PROGRESS && startedTime > 0) {
+            currentSessionTime = now.toDate().getTime() - taskItem.startedTimeInMilliseconds;
+        }
+        
+        if (now.isAfter(updatedAt, 'day')) {
+            // Calcular cuánto tiempo se trabajó específicamente en el día anterior
+            const endOfPreviousDay = updatedAt.endOf('day').toDate().getTime();
+            let timeWorkedInPreviousDay = 0;
+            
+            if (taskItem.startedTimeInMilliseconds > 0 && taskItem.startedTimeInMilliseconds <= endOfPreviousDay) {
+                // La sesión actual comenzó en el día anterior
+                const sessionTimeInPreviousDay = endOfPreviousDay - taskItem.startedTimeInMilliseconds;
+                timeWorkedInPreviousDay = historicalTime + sessionTimeInPreviousDay;
+                
+                // Actualizar para el día actual
+                currentSessionTime = currentSessionTime - sessionTimeInPreviousDay;
+            } else {
+                // La sesión actual comenzó hoy, todo el tiempo histórico es del día anterior
+                timeWorkedInPreviousDay = historicalTime;
+                // El tiempo de sesión actual queda intacto para el día actual
+            }
+            
+            // Guardar el daily task del día anterior
+            taskItem.dailyTasks.push({
+                taskDate: updatedAt.startOf('day').toDate(),
+                elapsedTime: timeWorkedInPreviousDay,
+            });
+            
+            // Actualizar valores para el día actual
+            historicalTime = 0; // Se reinicia porque ya se guardó en dailyTask
+        }
+        
+        // Guardar el daily task del día actual
         taskItem.dailyTasks.push({
-            taskDate: dayjs().toDate(),
-            elapsedTime: taskItem.elapsedTimeInMilliseconds
+            taskDate: now.startOf('day').toDate(),
+            elapsedTime: historicalTime + currentSessionTime
         });
         setTaskStopWatch({
             id: "",
