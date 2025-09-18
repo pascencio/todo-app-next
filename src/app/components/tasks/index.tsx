@@ -87,11 +87,14 @@ export default function Task() {
                 // El tiempo de sesión actual queda intacto para el día actual
             }
             
-            const daylyTask = {
-                taskDate: updatedAt.startOf('day').toDate(),
-                elapsedTime: timeWorkedInPreviousDay,
-            };
-            task.dailyTasks.push(daylyTask);
+            // Solo guardar el daily task si hay tiempo trabajado
+            if (timeWorkedInPreviousDay > 0) {
+                const daylyTask = {
+                    taskDate: updatedAt.startOf('day').toDate(),
+                    elapsedTime: timeWorkedInPreviousDay,
+                };
+                task.dailyTasks.push(daylyTask);
+            }
             
             // Actualizar valores para el día actual
             historicalTime = 0; // Se reinicia porque ya se guardó en dailyTask
@@ -179,11 +182,14 @@ export default function Task() {
                 // El tiempo de sesión actual queda intacto para el día actual
             }
             
-            const daylyTask = {
-                taskDate: updatedAt.startOf('day').toDate(),
-                elapsedTime: timeWorkedInPreviousDay,
-            };
-            task.dailyTasks.push(daylyTask);
+            // Solo guardar el daily task si hay tiempo trabajado
+            if (timeWorkedInPreviousDay > 0) {
+                const daylyTask = {
+                    taskDate: updatedAt.startOf('day').toDate(),
+                    elapsedTime: timeWorkedInPreviousDay,
+                };
+                task.dailyTasks.push(daylyTask);
+            }
             
             // Actualizar valores para el día actual
             historicalTime = 0; // Se reinicia porque ya se guardó en dailyTask
@@ -308,21 +314,26 @@ export default function Task() {
                 // El tiempo de sesión actual queda intacto para el día actual
             }
             
-            // Guardar el daily task del día anterior
-            taskItem.dailyTasks.push({
-                taskDate: updatedAt.startOf('day').toDate(),
-                elapsedTime: timeWorkedInPreviousDay,
-            });
+            // Solo guardar el daily task del día anterior si hay tiempo trabajado
+            if (timeWorkedInPreviousDay > 0) {
+                taskItem.dailyTasks.push({
+                    taskDate: updatedAt.startOf('day').toDate(),
+                    elapsedTime: timeWorkedInPreviousDay,
+                });
+            }
             
             // Actualizar valores para el día actual
             historicalTime = 0; // Se reinicia porque ya se guardó en dailyTask
         }
         
-        // Guardar el daily task del día actual
-        taskItem.dailyTasks.push({
-            taskDate: now.startOf('day').toDate(),
-            elapsedTime: historicalTime + currentSessionTime
-        });
+        // Guardar el daily task del día actual solo si hay tiempo trabajado
+        const currentDayTime = historicalTime + currentSessionTime;
+        if (currentDayTime > 0) {
+            taskItem.dailyTasks.push({
+                taskDate: now.startOf('day').toDate(),
+                elapsedTime: currentDayTime
+            });
+        }
         setTaskStopWatch({
             id: "",
             clockTime: "00:00:00",
